@@ -1,4 +1,8 @@
-var Emitter = require('component-emitter')
+try {
+  var Emitter = require('component-emitter')
+} catch (e) {
+  var Emitter = require('component/emitter')
+}
 
 /**
  * Export `Board`
