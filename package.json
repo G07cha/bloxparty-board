@@ -1,0 +1,16 @@
+{
+  "name": "netris-board",
+  "version": "1.0.0",
+  "description": "The Tetris board Netris uses",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape test/**/*.js | tap-spec"
+  },
+  "author": "River Grimm <river.grimm@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "browserify": "^11.0.0",
+    "tap-spec": "^4.0.2",
+    "tape": "^4.0.1"
+  }
+}
