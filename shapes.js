@@ -1,7 +1,7 @@
 module.exports = {
   'Z': {
     color: 'green',
-    shapes: [
+    rotations: [
       [
         [0, 0, 0, 0],
         [0, 0, 1, 1],
@@ -32,7 +32,7 @@ module.exports = {
   },
   'I': {
     color: 'cyan',
-    shapes: [
+    rotations: [
       [
         [0, 0, 0, 0],
         [1, 1, 1, 1],
@@ -61,7 +61,7 @@ module.exports = {
   },
   'J': {
     color: 'blue',
-    shapes: [
+    rotations: [
       [
         [0, 1, 0, 0],
         [0, 1, 1, 1],
@@ -90,7 +90,7 @@ module.exports = {
   },
   'L': {
     color: 'orange',
-    shapes: [
+    rotations: [
       [
         [0, 0, 0, 1],
         [0, 1, 1, 1],
@@ -119,7 +119,7 @@ module.exports = {
   },
   'O': {
     color: 'yellow',
-    shapes: [
+    rotations: [
       [
         [0, 1, 1, 0],
         [0, 1, 1, 0],
@@ -148,7 +148,7 @@ module.exports = {
   },
   'T': {
     color: 'purple',
-    shapes: [
+    rotations: [
       [
         [0, 0, 1, 0],
         [0, 1, 1, 1],
@@ -177,7 +177,7 @@ module.exports = {
   },
   'S': {
     color: 'red',
-    shapes: [
+    rotations: [
       [
         [0, 1, 1, 0],
         [0, 0, 1, 1],

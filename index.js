@@ -4,6 +4,8 @@ try {
   var Emitter = require('component/emitter')
 }
 
+var shapes = require('./shapes')
+
 /**
  * Export `Board`
  */
@@ -53,11 +55,13 @@ Board.prototype.json = function json() {
  * Add the `shape` to this player's board
  * @api private
  */
-Board.prototype.newShape = function newShape (shape) {
-  this.currentShape = shape
+Board.prototype.newShape = function newShape (name) {
+  this.currentShape = shapes[name]
+  this.currentShapeRotation = 0
   // position where the block will first appear on the board
   this.currentX = 0
   this.currentY = 0
+  this.emit('change')
 }
 
 /**
@@ -72,6 +76,7 @@ Board.prototype.freeze = function freeze () {
       }
     }
   }
+  this.emit('change')
 }
 
 /**
@@ -85,6 +90,7 @@ Board.prototype.clear = function clear () {
       this.grid[y][x] = 0
     }
   }
+  this.emit('change')
 }
 
 /**
@@ -112,6 +118,7 @@ Board.prototype.clearLines = function clearLines () {
       ++y
     }
   }
+  this.emit('change')
 }
 
 /**
@@ -139,24 +146,39 @@ Board.prototype.move = function move (direction) {
 }
 
 Board.prototype.moveDown = function moveDown () {
-  if (this.validateMove(0, 1)) ++this.currentY
+  if (this.validateMove(0, 1)) {
+    ++this.currentY
+    this.emit('change')
+  }
 }
 
 Board.prototype.moveRight = function moveRight () {
-  if (this.validateMove(1)) ++this.currentX
+  if (this.validateMove(1)) {
+    ++this.currentX
+    this.emit('change')
+  }
 }
 
 Board.prototype.moveLeft = function moveLeft () {
-  if (this.validateMove(-1)) --this.currentX
+  if (this.validateMove(-1)) {
+    --this.currentX
+    this.emit('change')
+  }
 }
 
 Board.prototype.drop = function drop () {
-  while (this.validateMove(0, 1)) ++this.currentY
+  while (this.validateMove(0, 1)) {
+    ++this.currentY
+  }
+  this.emit('change')
 }
 
 Board.prototype.rotate = function rotate () {
   var rotation = this.currentShapeRotation === 3 ? 0 : this.currentShapeRotation + 1
-  if (this.validateMove(0, 0, rotation)) this.currentShapeRotation = rotation
+  var shape = this.currentShape.rotations[rotation]
+  if (!this.validateMove(0, 0, shape)) return
+  this.currentShapeRotation = rotation
+  this.emit('change')
 }
 
 /**
@@ -167,7 +189,7 @@ Board.prototype.rotate = function rotate () {
  * @return {Boolean}
  */
 Board.prototype.validateMove = function validateMove (offsetX, offsetY, shape) {
-  shape = shape || this.currentShape.shapes[this.currentShapeRotation]
+  shape = shape || this.currentShape.rotations[this.currentShapeRotation]
   offsetX = offsetX || 0
   offsetY = offsetY || 0
   offsetX = this.currentX + offsetX
@@ -180,8 +202,8 @@ Board.prototype.validateMove = function validateMove (offsetX, offsetY, shape) {
           typeof this.grid[y + offsetY ][x + offsetX ] === 'undefined' ||
           this.grid[y + offsetY ][x + offsetX ] ||
           x + offsetX < 0 ||
-          y + offsetY >= this.game.rows ||
-          x + offsetX >= this.game.columns) {
+          y + offsetY >= this.rows ||
+          x + offsetX >= this.columns) {
           return false
         }
       }
@@ -204,33 +226,7 @@ Board.prototype.tick = function tick () {
     if (this.currentY === 0) this.lost = true // lost if the current shape is at the top row when checked
     if (this.lost) {
       this.emit('lost')
-      this.stop()
     }
-    this.createShape()
+    this.emit('settled')
   }
-}
-
-/**
- * Start this player's board
- * @api public
- */
-Board.prototype.start = function start () {
-  if (this.interval) clearInterval(this.interval)
-  var self = this
-  this.lost = false
-  this.clear()
-  this.createShape()
-  this.interval = setInterval(function () {
-    self.tick()
-  }, this.fallRate)
-  this.emit('start')
-}
-
-/**
- * Freeze this player's board in place
- * @api public
- */
-Board.prototype.stop = function stop () {
-  this.freeze()
-  clearInterval(this.interval)
 }
