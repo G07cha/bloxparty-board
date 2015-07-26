@@ -10,7 +10,7 @@ test('Board', function (t) {
 test('Board#json', function (t) {
   t.plan(5)
   var board = Board()
-  board.newShape(shapes['T'])
+  board.newShape('T')
   var json = board.json()
   t.equal(json.grid.length, 0, 'returns board.grid')
   t.equal(json.currentShapeRotation, 0, 'returns board.currentShapeRotation')
@@ -37,3 +37,4 @@ test('Board#validateMove', function (t) {})
 test('Board#tick', function (t) {})
 test('Board#start', function (t) {})
 test('Board#stop', function (t) {})
+test('Board#import', function (t) {})

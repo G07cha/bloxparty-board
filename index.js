@@ -25,6 +25,7 @@ function Board (attrs) {
   this.fallRate = attrs.fallRate || 750
   this.currentShapeRotation = 0
   this.currentShape = null
+  this.interval = null
   this.currentX = 0
   this.currentY = 0
   this.lost = false
@@ -145,6 +146,10 @@ Board.prototype.move = function move (direction) {
   }
 }
 
+/**
+ * Move the current piece down
+ * @api private
+ */
 Board.prototype.moveDown = function moveDown () {
   if (this.validateMove(0, 1)) {
     ++this.currentY
@@ -152,6 +157,10 @@ Board.prototype.moveDown = function moveDown () {
   }
 }
 
+/**
+ * Move the current piece right
+ * @api private
+ */
 Board.prototype.moveRight = function moveRight () {
   if (this.validateMove(1)) {
     ++this.currentX
@@ -159,6 +168,10 @@ Board.prototype.moveRight = function moveRight () {
   }
 }
 
+/**
+ * Move the current piece left
+ * @api private
+ */
 Board.prototype.moveLeft = function moveLeft () {
   if (this.validateMove(-1)) {
     --this.currentX
@@ -166,6 +179,10 @@ Board.prototype.moveLeft = function moveLeft () {
   }
 }
 
+/**
+ * Move the current piece down until it settles
+ * @api private
+ */
 Board.prototype.drop = function drop () {
   while (this.validateMove(0, 1)) {
     ++this.currentY
@@ -173,6 +190,10 @@ Board.prototype.drop = function drop () {
   this.emit('change')
 }
 
+/**
+ * Rotate the current piece
+ * @api private
+ */
 Board.prototype.rotate = function rotate () {
   var rotation = this.currentShapeRotation === 3 ? 0 : this.currentShapeRotation + 1
   var shape = this.currentShape.rotations[rotation]
@@ -224,9 +245,55 @@ Board.prototype.tick = function tick () {
     this.freeze()
     this.clearLines()
     if (this.currentY === 0) this.lost = true // lost if the current shape is at the top row when checked
-    if (this.lost) {
-      this.emit('lost')
-    }
+    if (this.lost) this.emit('lost')
     this.emit('settled')
   }
+  this.emit('tick')
+}
+
+/**
+ * Start this board
+ * @api public
+ */
+Board.prototype.start = function start () {
+  var self = this
+  if (!this.currentShape) this.error('Missing current shape')
+  if (this.interval) clearInterval(this.interval)
+  this.interval = setInterval(function () {
+    self.tick()
+  }, this.fallRate)
+  this.emit('change')
+  this.emit('start')
+}
+
+/**
+ * Emit error with `msg`
+ * @param  {String} msg
+ * @api private
+ */
+Board.prototype.error = function error (msg) {
+  this.emit('error', new Error(msg))
+}
+
+/**
+ * Reset the board
+ * @api public
+ */
+Board.prototype.reset = function reset () {
+  this.lost = false
+  this.clear()
+  this.emit('change')
+  this.emit('reset')
+}
+
+/**
+ * Import board data.  For syncing with external sources.
+ * @param  {Object} data
+ * @api public
+ */
+Board.prototype.sync = function sync (data) {
+  var self = this
+  Object.keys(data).forEach(function (key) {
+    this[key] = data[key]
+  })
 }
