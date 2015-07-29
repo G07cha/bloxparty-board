@@ -28,6 +28,15 @@ test('Board#newShape', function (t) {
   t.equal(board.currentY, 0, 'sets currentX to 0')
 })
 
+test('Board#sync', function (t) {
+  var board = Board()
+  var data = {
+    currentShape: shapes[0]
+  }
+  board.sync(data)
+  t.equal(board.currentShape, shapes[0], 'syncs currentShape')
+})
+
 test('Board#moveDown', function (t) {})
 test('Board#moveRight', function (t) {})
 test('Board#moveLeft', function (t) {})
