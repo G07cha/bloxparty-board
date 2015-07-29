@@ -29,12 +29,22 @@ test('Board#newShape', function (t) {
 })
 
 test('Board#sync', function (t) {
+  t.plan(1)
   var board = Board()
   var data = {
     currentShape: shapes[0]
   }
   board.sync(data)
   t.equal(board.currentShape, shapes[0], 'syncs currentShape')
+})
+
+test('Board#stop', function (t) {
+  t.plan(1)
+  var board = Board()
+  board.newShape('T')
+  board.start()
+  board.stop()
+  t.equal(board.interval[0], null, 'clears interval')
 })
 
 test('Board#moveDown', function (t) {})
@@ -45,5 +55,4 @@ test('Board#rotate', function (t) {})
 test('Board#validateMove', function (t) {})
 test('Board#tick', function (t) {})
 test('Board#start', function (t) {})
-test('Board#stop', function (t) {})
 test('Board#import', function (t) {})

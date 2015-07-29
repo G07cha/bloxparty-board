@@ -267,6 +267,14 @@ Board.prototype.start = function start () {
 }
 
 /**
+ * Stop this board
+ * @api public
+ */
+Board.prototype.stop = function stop () {
+  clearInterval(this.interval)
+}
+
+/**
  * Emit error with `msg`
  * @param  {String} msg
  * @api private
