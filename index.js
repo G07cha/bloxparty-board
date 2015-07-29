@@ -84,7 +84,7 @@ Board.prototype.freeze = function freeze () {
  * Clear this player's board
  * @api private
  */
-Board.prototype.clear = function clear () {
+Board.prototype.clearBoard = function clearBoard () {
   for (var y = 0; y < this.rows; ++y) {
     this.grid[y] = []
     for (var x = 0; x < this.columns; ++x) {
@@ -281,7 +281,7 @@ Board.prototype.error = function error (msg) {
  */
 Board.prototype.reset = function reset () {
   this.lost = false
-  this.clear()
+  this.clearBoard()
   this.emit('change')
   this.emit('reset')
 }
