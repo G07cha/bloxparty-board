@@ -294,6 +294,6 @@ Board.prototype.reset = function reset () {
 Board.prototype.sync = function sync (data) {
   var self = this
   Object.keys(data).forEach(function (key) {
-    this[key] = data[key]
+    self[key] = data[key]
   })
 }
