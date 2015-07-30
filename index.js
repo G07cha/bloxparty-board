@@ -1,9 +1,10 @@
 try {
   var Emitter = require('component-emitter')
+  var clone = require('component-clone')
 } catch (e) {
   var Emitter = require('component/emitter')
+  var clone = require('component/clone')
 }
-
 var shapes = require('./shapes')
 
 /**
@@ -28,7 +29,6 @@ function Board (attrs) {
   this.interval = null
   this.currentX = 0
   this.currentY = 0
-  this.lost = false
 }
 
 /**
@@ -100,6 +100,7 @@ Board.prototype.clearBoard = function clearBoard () {
  */
 Board.prototype.clearLines = function clearLines () {
   var length = this.rows - 1
+  var lineCount = 0
   var x = 0
   var y = 0
   for (y = length; y >= 0; --y) {
@@ -117,8 +118,10 @@ Board.prototype.clearLines = function clearLines () {
         }
       }
       ++y
+      ++lineCount
     }
   }
+  this.emit('clear lines', lineCount)
   this.emit('change')
 }
 
@@ -177,6 +180,45 @@ Board.prototype.moveLeft = function moveLeft () {
     --this.currentX
     this.emit('change')
   }
+}
+
+Board.prototype.addLines = function addLines (count) {
+  var newGrid = clone(this.grid)
+  while (count > 0) {
+    var first = this.grid.shift()
+    for (x = 0; x < this.columns; ++x) {
+      if (first[0][x] !== 0) {
+        this.lose()
+        break
+      }
+    }
+    newGrid.push(this.randomLine())
+    count--
+  }
+  this.grid = newGrid
+  this.emit('change')
+}
+
+Board.prototype.randomLine = function randomLine () {
+  var colors = shapes.map(function (shape) { return shape.color })
+  var length = this.columns
+  var line = []
+  var missingBlocks = 3
+
+  while (length > 0) {
+    var color = colors[Math.floor(Math.random() * colors.length)]
+    line.push(color)
+    --length
+  }
+
+  while (missingBlocks > 0) {
+    var cell = line[Math.floor(Math.random() * line.length)]
+    if (!cell) return
+    cell = ''
+    --missingBlocks
+  }
+
+  return line
 }
 
 /**
@@ -244,11 +286,14 @@ Board.prototype.tick = function tick () {
     // if the element settled
     this.freeze()
     this.clearLines()
-    if (this.currentY === 0) this.lost = true // lost if the current shape is at the top row when checked
-    if (this.lost) this.emit('lost')
+    if (this.currentY === 0) this.lose()
     this.emit('settled')
   }
   this.emit('tick')
+}
+
+Board.prototype.lose = function lost () {
+  this.emit('lost')
 }
 
 /**
