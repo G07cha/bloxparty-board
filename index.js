@@ -126,7 +126,8 @@ Board.prototype.clearLines = function clearLines () {
       ++lineCount
     }
   }
-  this.emit('clear lines', lineCount)
+
+  if (lineCount > 0) this.emit('clear lines', lineCount)
   this.emit('change')
 }
 
