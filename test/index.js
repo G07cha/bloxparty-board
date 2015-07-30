@@ -12,7 +12,7 @@ test('Board#json', function (t) {
   var board = Board()
   board.newShape('T')
   var json = board.json()
-  t.equal(json.grid.length, 0, 'returns board.grid')
+  t.equal(json.grid.length, 20, 'returns board.grid')
   t.equal(json.currentShapeRotation, 0, 'returns board.currentShapeRotation')
   t.equal(json.currentShape, shapes['T'], 'returns board.currentShape')
   t.equal(json.currentX, 0, 'returns board.currentX')
@@ -57,6 +57,21 @@ test('Board#randomLine', function (t) {
     if (cell === '') --emptyCount
   })
   t.equal(emptyCount, 0, 'three cells are empty')
+})
+
+test('Board#addLines', function (t) {
+  t.plan(3)
+  var board = Board()
+  board.addLines(3)
+  var lines = [board.grid[19], board.grid[18], board.grid[17]]
+  lines.forEach(function (line) {
+    line.some(function (cell) {
+      if (cell !== 0) {
+        t.true(true, 'line has colored cells')
+        return true
+      }
+    })
+  })
 })
 
 // test('Board#moveDown', function (t) {})

@@ -4,12 +4,14 @@
   "description": "The Tetris board Netris uses",
   "main": "index.js",
   "scripts": {
-    "test": "tape test/**/*.js | tap-spec"
+    "test": "tape test/**/*.js | tap-spec",
+    "lint": "standard index.js"
   },
   "author": "River Grimm <river.grimm@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "browserify": "^11.0.0",
+    "standard": "^4.5.4",
     "tap-spec": "^4.0.2",
     "tape": "^4.0.1"
   }

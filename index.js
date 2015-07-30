@@ -1,11 +1,14 @@
-try {
-  var Emitter = require('component-emitter')
-  var clone = require('component-clone')
-} catch (e) {
-  var Emitter = require('component/emitter')
-  var clone = require('component/clone')
-}
+var Emitter
+var clone
 var shapes = require('./shapes')
+
+try {
+  Emitter = require('component-emitter')
+  clone = require('component-clone')
+} catch (e) {
+  Emitter = require('component/emitter')
+  clone = require('component/clone')
+}
 
 /**
  * Export `Board`
@@ -29,6 +32,8 @@ function Board (attrs) {
   this.interval = null
   this.currentX = 0
   this.currentY = 0
+  this.lost = false
+  this.clearBoard()
 }
 
 /**
@@ -40,7 +45,7 @@ Emitter(Board.prototype)
  * Return a JSON representation of this board
  * @return {JSON} JSON Object
  */
-Board.prototype.json = function json() {
+Board.prototype.json = function json () {
   var json = {
     grid: this.grid,
     currentShapeRotation: this.currentShapeRotation,
@@ -184,10 +189,11 @@ Board.prototype.moveLeft = function moveLeft () {
 
 Board.prototype.addLines = function addLines (count) {
   var newGrid = clone(this.grid)
+  var x = 0
   while (count > 0) {
-    var first = this.grid.shift()
+    var first = newGrid.shift()
     for (x = 0; x < this.columns; ++x) {
-      if (first[0][x] !== 0) {
+      if (first[x] !== 0) {
         this.lose()
         break
       }
@@ -215,11 +221,11 @@ Board.prototype.randomLine = function randomLine () {
 
   while (missingBlocks > 0) {
     var cellIndex = Math.floor(Math.random() * line.length)
-    if (!line[cellIndex]) return
-    line[cellIndex] = ''
-    --missingBlocks
+    if (line[cellIndex]) {
+      line[cellIndex] = ''
+      --missingBlocks
+    }
   }
-
   return line
 }
 
@@ -295,6 +301,7 @@ Board.prototype.tick = function tick () {
 }
 
 Board.prototype.lose = function lost () {
+  this.lost = true
   this.emit('lost')
 }
 
