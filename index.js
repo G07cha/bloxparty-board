@@ -223,7 +223,7 @@ Board.prototype.randomLine = function randomLine () {
   while (missingBlocks > 0) {
     var cellIndex = Math.floor(Math.random() * line.length)
     if (line[cellIndex]) {
-      line[cellIndex] = ''
+      line[cellIndex] = 0
       --missingBlocks
     }
   }

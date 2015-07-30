@@ -54,7 +54,7 @@ test('Board#randomLine', function (t) {
   var emptyCount = 3
   t.equal(row.length, 10, 'returns row 10 cells wide')
   row.forEach(function (cell) {
-    if (cell === '') --emptyCount
+    if (cell === 0) --emptyCount
   })
   t.equal(emptyCount, 0, 'three cells are empty')
 })
