@@ -200,7 +200,9 @@ Board.prototype.addLines = function addLines (count) {
 }
 
 Board.prototype.randomLine = function randomLine () {
-  var colors = shapes.map(function (shape) { return shape.color })
+  var colors = Object.keys(shapes).map(function (shape) {
+    return shapes[shape].color
+  })
   var length = this.columns
   var line = []
   var missingBlocks = 3
@@ -212,9 +214,9 @@ Board.prototype.randomLine = function randomLine () {
   }
 
   while (missingBlocks > 0) {
-    var cell = line[Math.floor(Math.random() * line.length)]
-    if (!cell) return
-    cell = ''
+    var cellIndex = Math.floor(Math.random() * line.length)
+    if (!line[cellIndex]) return
+    line[cellIndex] = ''
     --missingBlocks
   }
 

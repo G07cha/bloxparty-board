@@ -47,12 +47,24 @@ test('Board#stop', function (t) {
   t.equal(board.interval[0], null, 'clears interval')
 })
 
-test('Board#moveDown', function (t) {})
-test('Board#moveRight', function (t) {})
-test('Board#moveLeft', function (t) {})
-test('Board#drop', function (t) {})
-test('Board#rotate', function (t) {})
-test('Board#validateMove', function (t) {})
-test('Board#tick', function (t) {})
-test('Board#start', function (t) {})
-test('Board#import', function (t) {})
+test('Board#randomLine', function (t) {
+  t.plan(2)
+  var board = Board()
+  var row = board.randomLine()
+  var emptyCount = 3
+  t.equal(row.length, 10, 'returns row 10 cells wide')
+  row.forEach(function (cell) {
+    if (cell === '') --emptyCount
+  })
+  t.equal(emptyCount, 0, 'three cells are empty')
+})
+
+// test('Board#moveDown', function (t) {})
+// test('Board#moveRight', function (t) {})
+// test('Board#moveLeft', function (t) {})
+// test('Board#drop', function (t) {})
+// test('Board#rotate', function (t) {})
+// test('Board#validateMove', function (t) {})
+// test('Board#tick', function (t) {})
+// test('Board#start', function (t) {})
+// test('Board#import', function (t) {})
