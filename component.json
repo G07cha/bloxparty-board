@@ -1,0 +1,11 @@
+{
+  "name": "bloxparty-board",
+  "repository": "staygrimm/bloxparty-board",
+  "description": "Board used for Blox Party game",
+  "version": "1.0.0",
+  "dependencies": {
+    "component/emitter": "*",
+    "component/clone": "*",
+    "dilvie/cuid": "*"
+  }
+}

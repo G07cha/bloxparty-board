@@ -14,5 +14,10 @@
     "standard": "^4.5.4",
     "tap-spec": "^4.0.2",
     "tape": "^4.0.1"
+  },
+  "dependencies": {
+    "component-clone": "^0.2.2",
+    "component-emitter": "^1.2.0",
+    "cuid": "^1.2.5"
   }
 }

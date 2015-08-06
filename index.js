@@ -1,13 +1,14 @@
+var uid = require('cuid')
+var shapes = require('./shapes')
 var Emitter
 var clone
-var shapes = require('./shapes')
 
 try {
   Emitter = require('component-emitter')
   clone = require('component-clone')
 } catch (e) {
-  Emitter = require('component/emitter')
-  clone = require('component/clone')
+  Emitter = require('emitter')
+  clone = require('clone')
 }
 
 /**
@@ -23,6 +24,7 @@ module.exports = Board
 function Board (attrs) {
   if (!(this instanceof Board)) return new Board(attrs)
   attrs = attrs || {}
+  this.id = uid()
   this.rows = attrs.rows || 20
   this.columns = attrs.columns || 10
   this.grid = attrs.grid || []
@@ -212,7 +214,7 @@ Board.prototype.randomLine = function randomLine () {
   })
   var length = this.columns
   var line = []
-  var missingBlocks = 3
+  var missingBlocks = 2
 
   while (length > 0) {
     var color = colors[Math.floor(Math.random() * colors.length)]

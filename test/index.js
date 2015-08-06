@@ -51,7 +51,7 @@ test('Board#randomLine', function (t) {
   t.plan(2)
   var board = Board()
   var row = board.randomLine()
-  var emptyCount = 3
+  var emptyCount = 2
   t.equal(row.length, 10, 'returns row 10 cells wide')
   row.forEach(function (cell) {
     if (cell === 0) --emptyCount
