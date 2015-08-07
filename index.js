@@ -50,6 +50,7 @@ Emitter(Board.prototype)
  */
 Board.prototype.json = function json () {
   var json = {
+    queue: this.queue,
     grid: this.grid,
     currentShapeRotation: this.currentShapeRotation,
     currentShape: this.currentShape,
