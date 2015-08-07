@@ -31,6 +31,7 @@ function Board (attrs) {
   this.fallRate = attrs.fallRate || 750
   this.currentShapeRotation = 0
   this.currentShape = null
+  this.queue = []
   this.interval = null
   this.currentX = 0
   this.currentY = 0
@@ -63,12 +64,14 @@ Board.prototype.json = function json () {
  * Add the `shape` to this player's board
  * @api private
  */
-Board.prototype.newShape = function newShape (name) {
-  this.currentShape = shapes[name]
+Board.prototype.newShape = function newShape () {
+  this.currentShape = shapes[this.queue[0]]
+  this.queue.shift()
   this.currentShapeRotation = 0
   // position where the block will first appear on the board
   this.currentX = 0
   this.currentY = 0
+  this.emit('new shape')
   this.emit('change')
 }
 
