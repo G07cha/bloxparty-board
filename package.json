@@ -1,7 +1,7 @@
 {
-  "name": "netris-board",
+  "name": "bloxparty-board",
   "version": "1.0.0",
-  "description": "The Tetris board Netris uses",
+  "description": "The game board for Blox Party uses",
   "main": "index.js",
   "scripts": {
     "test": "tape test/**/*.js | tap-spec",
