@@ -1,4 +1,4 @@
-var uid = require('cuid')
+var uid = require('node-uuid')
 var shapes = require('./shapes')
 var Emitter
 var clone
