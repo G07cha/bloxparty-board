@@ -6,6 +6,6 @@
   "dependencies": {
     "component/emitter": "*",
     "component/clone": "*",
-    "dilvie/cuid": "*"
+    "broofa/node-uuid": "*"
   }
 }
