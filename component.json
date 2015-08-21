@@ -2,10 +2,10 @@
   "name": "bloxparty-board",
   "repository": "staygrimm/bloxparty-board",
   "description": "Board used for Blox Party game",
-  "version": "1.0.0",
+  "version": "1.0.1-alpha",
   "dependencies": {
     "component/emitter": "*",
     "component/clone": "*",
-    "broofa/node-uuid": "*"
+    "ericelliott/cuid": "*"
   }
 }
