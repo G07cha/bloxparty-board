@@ -316,7 +316,7 @@ Board.prototype.tick = function tick () {
     this.emit('settled')
   }
   this.fallRate = ((11 - this.level) * 50)
-  setTimeout(this.tick, this.fallRate)
+  setTimeout(this.tick.bind(this), this.fallRate)
   this.emit('tick')
 }
 
