@@ -1,4 +1,4 @@
-var uid = require('uid')
+var uid = require('cuid')
 var shapes = require('./shapes')
 var Emitter
 var clone
@@ -46,8 +46,6 @@ function Board (attrs) {
  * Mixins
  */
 Emitter(Board.prototype)
-
-Board.prototype.render = render
 
 /**
  * Return a JSON representation of this board
