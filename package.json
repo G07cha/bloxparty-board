@@ -1,6 +1,6 @@
 {
   "name": "bloxparty-board",
-  "version": "1.0.2-alpha",
+  "version": "1.0.4-alpha",
   "description": "The game board for Blox Party uses",
   "main": "index.js",
   "scripts": {
