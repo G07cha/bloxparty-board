@@ -338,7 +338,7 @@ Board.prototype.start = function start () {
   //   self.tick()
   // }, this.fallRate)
 
-  setTimeout(this.tick, this.fallRate)
+  setTimeout(this.tick.bind(this), this.fallRate)
   this.emit('change')
   this.emit('start')
 }
