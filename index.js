@@ -25,10 +25,11 @@ function Board (attrs) {
   if (!(this instanceof Board)) return new Board(attrs)
   attrs = attrs || {}
   this.id = uid()
+  this.ctx = attrs.ctx || null
   this.rows = attrs.rows || 20
   this.columns = attrs.columns || 10
   this.grid = attrs.grid || []
-  this.fallRate = attrs.fallRate || 750
+  this.fallRate = attrs.fallRate || 600
   this.currentShapeRotation = 0
   this.currentShape = null
   this.queue = []
@@ -36,6 +37,8 @@ function Board (attrs) {
   this.currentX = 0
   this.currentY = 0
   this.lost = false
+  this.lineCount = 0
+  this.level = 0
   this.clearBoard()
 }
 
@@ -43,6 +46,8 @@ function Board (attrs) {
  * Mixins
  */
 Emitter(Board.prototype)
+
+Board.prototype.render = render
 
 /**
  * Return a JSON representation of this board
@@ -133,7 +138,15 @@ Board.prototype.clearLines = function clearLines () {
     }
   }
 
-  if (lineCount > 0) this.emit('clear lines', lineCount)
+  if (lineCount > 0) {
+    this.emit('clear lines', lineCount)
+    this.lineCount = this.lineCount + lineCount
+  }
+
+  if (this.lineCount <= 0) this.level = 1
+  if ((this.lineCount >= 1) && (this.lineCount <= 90)) this.level = 1 + ((this.lineCount - 1) / 5)
+  if (this.lineCount >= 91) this.level = 10
+
   this.emit('change')
 }
 
@@ -304,6 +317,8 @@ Board.prototype.tick = function tick () {
     if (this.currentY === 0) this.lose()
     this.emit('settled')
   }
+  this.fallRate = ((11 - this.level) * 50)
+  setTimeout(this.tick, this.fallRate)
   this.emit('tick')
 }
 
@@ -317,12 +332,13 @@ Board.prototype.lose = function lost () {
  * @api public
  */
 Board.prototype.start = function start () {
-  var self = this
   if (!this.currentShape) this.error('Missing current shape')
   if (this.interval) clearInterval(this.interval)
-  this.interval = setInterval(function () {
-    self.tick()
-  }, this.fallRate)
+  // this.interval = setInterval(function () {
+  //   self.tick()
+  // }, this.fallRate)
+
+  setTimeout(this.tick, this.fallRate)
   this.emit('change')
   this.emit('start')
 }
