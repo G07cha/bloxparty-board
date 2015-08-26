@@ -47,8 +47,6 @@ function Board (attrs) {
  */
 Emitter(Board.prototype)
 
-Board.prototype.render = render
-
 /**
  * Return a JSON representation of this board
  * @return {JSON} JSON Object
