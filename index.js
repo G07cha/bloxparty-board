@@ -1,4 +1,4 @@
-var uid = require('cuid')
+var uid = require('uid')
 var shapes = require('./shapes')
 var Emitter
 var clone
@@ -58,7 +58,8 @@ Board.prototype.json = function json () {
     currentShapeRotation: this.currentShapeRotation,
     currentShape: this.currentShape,
     currentX: this.currentX,
-    currentY: this.currentY
+    currentY: this.currentY,
+    level: this.level
   }
 
   return json
@@ -312,8 +313,8 @@ Board.prototype.tick = function tick () {
     // if the element settled
     this.freeze()
     this.clearLines()
-    if (this.currentY === 0) this.lose()
     this.emit('settled')
+    if (this.currentY === 0) return this.lose()
   }
   this.fallRate = ((11 - this.level) * 50)
   setTimeout(this.tick.bind(this), this.fallRate)
