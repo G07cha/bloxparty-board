@@ -2,7 +2,7 @@
   "name": "bloxparty-board",
   "repository": "staygrimm/bloxparty-board",
   "description": "Board used for Blox Party game",
-  "version": "1.0.4-alpha",
+  "version": "1.0.5",
   "dependencies": {
     "component/emitter": "*",
     "component/clone": "*",
