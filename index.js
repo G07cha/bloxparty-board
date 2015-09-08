@@ -332,7 +332,7 @@ Board.prototype.lose = function lost () {
  * @api public
  */
 Board.prototype.start = function start () {
-  if (!this.currentShape) this.error('Missing current shape')
+  if (!this.currentShape) return this.error('Missing current shape')
   this.timeout = setTimeout(this.tick.bind(this), this.fallRate)
   this.emit('change')
   this.emit('start')
