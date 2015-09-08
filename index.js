@@ -333,10 +333,6 @@ Board.prototype.lose = function lost () {
 Board.prototype.start = function start () {
   if (!this.currentShape) this.error('Missing current shape')
   if (this.interval) clearInterval(this.interval)
-  // this.interval = setInterval(function () {
-  //   self.tick()
-  // }, this.fallRate)
-
   setTimeout(this.tick.bind(this), this.fallRate)
   this.emit('change')
   this.emit('start')
@@ -348,6 +344,7 @@ Board.prototype.start = function start () {
  */
 Board.prototype.stop = function stop () {
   clearInterval(this.interval)
+  this.interval = null
 }
 
 /**
