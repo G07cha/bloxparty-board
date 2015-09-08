@@ -33,10 +33,10 @@ function Board (attrs) {
   this.currentShapeRotation = 0
   this.currentShape = null
   this.queue = []
-  this.interval = null
   this.currentX = 0
   this.currentY = 0
   this.lost = false
+  this.timeout = null
   this.lineCount = 0
   this.level = 0
   this.clearBoard()
@@ -317,12 +317,13 @@ Board.prototype.tick = function tick () {
     if (this.currentY === 0) return this.lose()
   }
   this.fallRate = ((11 - this.level) * 50)
-  setTimeout(this.tick.bind(this), this.fallRate)
+  this.timeout = setTimeout(this.tick.bind(this), this.fallRate)
   this.emit('tick')
 }
 
 Board.prototype.lose = function lost () {
   this.lost = true
+  this.stop()
   this.emit('lost')
 }
 
@@ -332,8 +333,7 @@ Board.prototype.lose = function lost () {
  */
 Board.prototype.start = function start () {
   if (!this.currentShape) this.error('Missing current shape')
-  if (this.interval) clearInterval(this.interval)
-  setTimeout(this.tick.bind(this), this.fallRate)
+  this.timeout = setTimeout(this.tick.bind(this), this.fallRate)
   this.emit('change')
   this.emit('start')
 }
@@ -343,8 +343,8 @@ Board.prototype.start = function start () {
  * @api public
  */
 Board.prototype.stop = function stop () {
-  clearInterval(this.interval)
-  this.interval = null
+  clearTimeout(this.timeout)
+  this.timeout = null
 }
 
 /**
