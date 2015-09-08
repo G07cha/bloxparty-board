@@ -143,7 +143,7 @@ Board.prototype.clearLines = function clearLines () {
   }
 
   if (this.lineCount <= 0) this.level = 1
-  if ((this.lineCount >= 1) && (this.lineCount <= 90)) this.level = 1 + ((this.lineCount - 1) / 5)
+  if ((this.lineCount >= 1) && (this.lineCount <= 90)) this.level = Math.floor(1 + ((this.lineCount - 1) / 5))
   if (this.lineCount >= 91) this.level = 10
 
   this.emit('change')
@@ -316,7 +316,7 @@ Board.prototype.tick = function tick () {
     this.emit('settled')
     if (this.currentY === 0) return this.lose()
   }
-  this.fallRate = Math.floor((11 - this.level) * 50)
+  this.fallRate = ((11 - this.level) * 50)
   this.timeout = setTimeout(this.tick.bind(this), this.fallRate)
   this.emit('tick')
 }
