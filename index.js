@@ -39,7 +39,7 @@ function Board (attrs) {
   this.timeout = null
   this.lineCount = 0
   this.level = 0
-  this.clearBoard()
+  this.clearGrid()
 }
 
 /**
@@ -69,7 +69,7 @@ Board.prototype.json = function json () {
  * Add the `shape` to this player's board
  * @api private
  */
-Board.prototype.newShape = function newShape () {
+Board.prototype.nextShape = function nextShape () {
   this.currentShape = shapes[this.queue[0]]
   this.queue.shift()
   this.currentShapeRotation = 0
@@ -77,7 +77,6 @@ Board.prototype.newShape = function newShape () {
   this.currentX = 0
   this.currentY = 0
   this.emit('new shape')
-  this.emit('change')
 }
 
 /**
@@ -92,21 +91,19 @@ Board.prototype.freeze = function freeze () {
       }
     }
   }
-  this.emit('change')
 }
 
 /**
- * Clear this player's board
+ * Clear this player's grid
  * @api private
  */
-Board.prototype.clearBoard = function clearBoard () {
+Board.prototype.clearGrid = function clearGrid () {
   for (var y = 0; y < this.rows; ++y) {
     this.grid[y] = []
     for (var x = 0; x < this.columns; ++x) {
       this.grid[y][x] = 0
     }
   }
-  this.emit('change')
 }
 
 /**
@@ -145,8 +142,6 @@ Board.prototype.clearLines = function clearLines () {
   if (this.lineCount <= 0) this.level = 1
   if ((this.lineCount >= 1) && (this.lineCount <= 90)) this.level = Math.floor(1 + ((this.lineCount - 1) / 5))
   if (this.lineCount >= 91) this.level = 10
-
-  this.emit('change')
 }
 
 /**
@@ -180,7 +175,6 @@ Board.prototype.move = function move (direction) {
 Board.prototype.moveDown = function moveDown () {
   if (this.validateMove(0, 1)) {
     ++this.currentY
-    this.emit('change')
   }
 }
 
@@ -191,7 +185,6 @@ Board.prototype.moveDown = function moveDown () {
 Board.prototype.moveRight = function moveRight () {
   if (this.validateMove(1)) {
     ++this.currentX
-    this.emit('change')
   }
 }
 
@@ -202,7 +195,6 @@ Board.prototype.moveRight = function moveRight () {
 Board.prototype.moveLeft = function moveLeft () {
   if (this.validateMove(-1)) {
     --this.currentX
-    this.emit('change')
   }
 }
 
@@ -221,7 +213,6 @@ Board.prototype.addLines = function addLines (count) {
     count--
   }
   this.grid = newGrid
-  this.emit('change')
 }
 
 Board.prototype.randomLine = function randomLine () {
@@ -256,7 +247,6 @@ Board.prototype.drop = function drop () {
   while (this.validateMove(0, 1)) {
     ++this.currentY
   }
-  this.emit('change')
 }
 
 /**
@@ -268,7 +258,6 @@ Board.prototype.rotate = function rotate () {
   var shape = this.currentShape.rotations[rotation]
   if (!this.validateMove(0, 0, shape)) return
   this.currentShapeRotation = rotation
-  this.emit('change')
 }
 
 /**
@@ -313,16 +302,14 @@ Board.prototype.tick = function tick () {
     // if the element settled
     this.freeze()
     this.clearLines()
-    this.emit('settled')
     if (this.currentY === 0) return this.lose()
-    this.newShape()
+    this.nextShape()
   }
   this.fallRate = ((11 - this.level) * 50)
   this.timeout = setTimeout(this.tick.bind(this), this.fallRate)
-  this.emit('tick')
 }
 
-Board.prototype.lose = function lost () {
+Board.prototype.lose = function lose () {
   this.lost = true
   this.stop()
   this.emit('lost')
@@ -335,7 +322,6 @@ Board.prototype.lose = function lost () {
 Board.prototype.start = function start () {
   if (!this.currentShape) return this.error('Missing current shape')
   this.timeout = setTimeout(this.tick.bind(this), this.fallRate)
-  this.emit('change')
   this.emit('start')
 }
 
@@ -363,9 +349,7 @@ Board.prototype.error = function error (msg) {
  */
 Board.prototype.reset = function reset () {
   this.lost = false
-  this.clearBoard()
-  this.emit('change')
-  this.emit('reset')
+  this.clearGrid()
 }
 
 /**

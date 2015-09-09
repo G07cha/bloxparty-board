@@ -13,7 +13,7 @@ describe('Board#json', function () {
   var board = Board()
   var json
 
-  board.newShape('T')
+  board.nextShape('T')
   json = board.json()
 
   it('returns board.grid', function () {
@@ -33,14 +33,71 @@ describe('Board#json', function () {
   })
 })
 
-// test('Board#newShape', function (t) {
-//   t.plan(3)
-//   var board = Board()
-//   board.newShape(shapes[0])
-//   t.equal(board.currentShape,  shapes[0], 'sets currentShape to given shape')
-//   t.equal(board.currentX, 0, 'sets currentX to 0')
-//   t.equal(board.currentY, 0, 'sets currentX to 0')
-// })
+describe('Board#nextShape', function () {
+  it('sets the currentShape to next shape in queue', function () {
+    var board = Board()
+    board.queue = ['T']
+    board.nextShape()
+    assert(board.currentShape.color === 'purple')
+  })
+  it('sets board.currentX to 0', function () {
+    var board = Board()
+    board.queue = ['T']
+    board.currentX = 1
+    board.nextShape()
+    assert(board.currentX === 0)
+  })
+  it('sets board.currentY to 0', function () {
+    var board = Board()
+    board.queue = ['T']
+    board.currentY = 1
+    board.nextShape()
+    assert(board.currentY === 0)
+  })
+  it('sets board.currentShapeRotation to 0', function () {
+    var board = Board()
+    board.queue = ['T']
+    board.currentShapeRotation = 1
+    board.nextShape()
+    assert(board.currentShapeRotation === 0)
+  })
+})
+
+describe('Board#freeze', function () {
+  it('freezes a shape to the board', function () {
+    var board = Board()
+    board.queue = ['T']
+    board.nextShape()
+    board.tick()
+    board.tick()
+    board.tick()
+    board.tick()
+    board.freeze()
+    assert(board.grid[4][2] === board.currentShape.color)
+    assert(board.grid[5][1] === board.currentShape.color)
+    assert(board.grid[5][2] === board.currentShape.color)
+    assert(board.grid[5][3] === board.currentShape.color)
+  })
+})
+
+describe('Board#clearGrid', function () {
+  it('clears the grid', function () {
+    var board = Board()
+    board.queue = ['T']
+    board.nextShape()
+    board.tick()
+    board.tick()
+    board.tick()
+    board.tick()
+    board.freeze()
+    board.clearGrid()
+    board.grid.forEach(function (row) {
+      row.forEach(function (cell) {
+        assert(cell === 0)
+      })
+    })
+  })
+})
 
 // test('Board#sync', function (t) {
 //   t.plan(1)
