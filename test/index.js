@@ -1,6 +1,6 @@
 /*global describe, it*/
 var assert = require('component/assert')
-var Board = require('../new')
+var Board = require('../')
 var shapes = require('../shapes')
 
 describe('Board', function () {

@@ -16,7 +16,7 @@ try {
  */
 module.exports = Board
 
-var timers = []
+
 
 /**
  * Initalize `Board` with `attrs`
@@ -27,7 +27,12 @@ function Board (attrs) {
   if (!(this instanceof Board)) return new Board(attrs)
   attrs = attrs || {}
   this.id = uid()
-  this.ctx = attrs.ctx || null
+  this.movementEl = attrs.movementEl || null
+  this.backgroundEl = attrs.backgroundEl || null
+  this.previewEl = attrs.previewEl || null
+  this.movementCTX = null
+  this.backgroundCTX = null
+  this.previewCTX = null
   this.rows = attrs.rows || 20
   this.columns = attrs.columns || 10
   this.grid = attrs.grid || []
@@ -38,9 +43,11 @@ function Board (attrs) {
   this.currentX = 0
   this.currentY = 0
   this.lost = false
+  this.quit = false
   this.timeout = null
   this.lineCount = 0
   this.level = 0
+  if (this.movementEl) this.getElStats(attrs)
   this.clearGrid()
 }
 
@@ -67,8 +74,32 @@ Board.prototype.json = function json () {
   return json
 }
 
+Board.prototype.getElStats = function getElStats (attrs) {
+  this.backgroundCTX = this.backgroundEl.getContext('2d')
+  this.movementCTX = this.movementEl.getContext('2d')
+  // this.previewCTX = this.previewEl.getContext('2d')
+
+  var translate = (this.backgroundCTX.lineWidth % 2) / 2
+  this.backgroundCTX.setTransform(1, 0, 0, 1, 0, 0)
+  this.backgroundCTX.translate(translate, translate)
+  this.backgroundCTX.save()
+
+  this.movementCTX.setTransform(1, 0, 0, 1, 0, 0)
+  this.movementCTX.translate(translate, translate)
+  this.movementCTX.save()
+
+  // this.previewCTX.setTransform(1, 0, 0, 1, 0, 0)
+  // this.previewCTX.translate(translate, translate)
+  // this.previewCTX.save()
+
+  this.elWidth = this.movementEl.offsetWidth
+  this.elHeight = this.movementEl.offsetHeight
+  this.cellWidth = this.elWidth / this.columns
+  this.cellHeight = this.elHeight / this.rows
+}
+
 /**
- * Add the `shape` to this player's board
+ * Grab next shape from queue
  * @api private
  */
 Board.prototype.nextShape = function nextShape () {
@@ -79,6 +110,7 @@ Board.prototype.nextShape = function nextShape () {
   this.currentX = 0
   this.currentY = 0
   this.emit('new shape')
+  this.emit('change')
 }
 
 /**
@@ -93,10 +125,11 @@ Board.prototype.freeze = function freeze () {
       }
     }
   }
+  this.emit('change')
 }
 
 /**
- * Clear this player's grid
+ * Clear this player's board
  * @api private
  */
 Board.prototype.clearGrid = function clearGrid () {
@@ -106,6 +139,7 @@ Board.prototype.clearGrid = function clearGrid () {
       this.grid[y][x] = 0
     }
   }
+  this.emit('change')
 }
 
 /**
@@ -144,6 +178,8 @@ Board.prototype.clearLines = function clearLines () {
   if (this.lineCount <= 0) this.level = 1
   if ((this.lineCount >= 1) && (this.lineCount <= 90)) this.level = Math.floor(1 + ((this.lineCount - 1) / 5))
   if (this.lineCount >= 91) this.level = 10
+
+  this.emit('change')
 }
 
 /**
@@ -177,6 +213,7 @@ Board.prototype.move = function move (direction) {
 Board.prototype.moveDown = function moveDown () {
   if (this.validateMove(0, 1)) {
     ++this.currentY
+    this.emit('change')
   }
 }
 
@@ -187,6 +224,7 @@ Board.prototype.moveDown = function moveDown () {
 Board.prototype.moveRight = function moveRight () {
   if (this.validateMove(1)) {
     ++this.currentX
+    this.emit('change')
   }
 }
 
@@ -197,6 +235,7 @@ Board.prototype.moveRight = function moveRight () {
 Board.prototype.moveLeft = function moveLeft () {
   if (this.validateMove(-1)) {
     --this.currentX
+    this.emit('change')
   }
 }
 
@@ -215,6 +254,7 @@ Board.prototype.addLines = function addLines (count) {
     count--
   }
   this.grid = newGrid
+  this.emit('change')
 }
 
 Board.prototype.randomLine = function randomLine () {
@@ -249,6 +289,7 @@ Board.prototype.drop = function drop () {
   while (this.validateMove(0, 1)) {
     ++this.currentY
   }
+  this.emit('change')
 }
 
 /**
@@ -260,6 +301,7 @@ Board.prototype.rotate = function rotate () {
   var shape = this.currentShape.rotations[rotation]
   if (!this.validateMove(0, 0, shape)) return
   this.currentShapeRotation = rotation
+  this.emit('change')
 }
 
 /**
@@ -298,26 +340,27 @@ Board.prototype.validateMove = function validateMove (offsetX, offsetY, shape) {
  * @api private
  */
 Board.prototype.tick = function tick () {
-  if (!this.timer) {
-    this.timeout = null
-    return
-  }
+  var self = this
+  if (!this.currentShape) return
   if (this.validateMove(0, 1)) {
     ++this.currentY
+    this.emit('change')
   } else {
     // if the element settled
     this.freeze()
     this.clearLines()
+    this.emit('settled')
     if (this.currentY === 0) return this.lose()
     this.nextShape()
+    this.emit('change')
   }
   this.fallRate = ((11 - this.level) * 50)
-  this.timeout = setTimeout(this.tick.bind(this), this.fallRate)
+  this.timeout = setTimeout(function () {
+    self.tick()
+  }, this.fallRate)
 }
 
-Board.prototype.timer = null
-
-Board.prototype.lose = function lose () {
+Board.prototype.lose = function lost () {
   this.lost = true
   this.stop()
   this.emit('lost')
@@ -330,8 +373,8 @@ Board.prototype.lose = function lose () {
 Board.prototype.start = function start () {
   this.nextShape()
   if (!this.currentShape) return this.error('Missing current shape')
-  this.timer = true
-  this.timeout = setTimeout(this.tick.bind(this), this.fallRate)
+  this.tick()
+  this.emit('change')
   this.emit('start')
 }
 
@@ -340,7 +383,6 @@ Board.prototype.start = function start () {
  * @api public
  */
 Board.prototype.stop = function stop () {
-  this.timer = null
   clearTimeout(this.timeout)
   this.timeout = null
 }
@@ -359,8 +401,11 @@ Board.prototype.error = function error (msg) {
  * @api public
  */
 Board.prototype.reset = function reset () {
+  this.level = 0
   this.lost = false
   this.clearGrid()
+  this.emit('change')
+  this.emit('reset')
 }
 
 /**
@@ -373,4 +418,75 @@ Board.prototype.sync = function sync (data) {
   Object.keys(data).forEach(function (key) {
     self[key] = data[key]
   })
+}
+
+Board.prototype.drawGrid = function drawGrid () {
+  var ctx = this.backgroundCTX
+  var columns = this.columns
+  var rows = this.rows
+  var cellWidth = this.cellWidth
+  var cellHeight = this.cellHeight
+  var y = 0
+  var x = 0
+  var blocks = {
+    red: [],
+    green: [],
+    purple: [],
+    cyan: [],
+    blue: [],
+    orange: [],
+    yellow: []
+  }
+  ctx.clearRect(0, 0, this.elWidth, this.elHeight)
+  // renderGrid()
+  for (x = 0; x < 10; ++x) {
+    for (y = 0; y < 20; ++y) {
+      if (this.grid[y][x]) {
+        blocks[this.grid[y][x]].push([x, y])
+      }
+    }
+  }
+  for (var color in blocks) {
+    ctx.fillStyle = color
+    blocks[color].forEach(function (cell) {
+      ctx.fillRect(cellWidth * cell[0], cellHeight * cell[1], cellWidth, cellHeight)
+      ctx.strokeRect(cellWidth * cell[0], cellHeight * cell[1], cellWidth, cellHeight)
+    })
+  }
+}
+
+Board.prototype.drawCurrentShape = function drawCurrentShape () {
+  if (!this.currentShape) return
+  var ctx = this.movementCTX
+  var y = 0
+  var x = 0
+  ctx.clearRect(0, 0, this.elWidth, this.elHeight)
+  ctx.fillStyle = this.currentShape.color
+  for (y = 0; y < 4; ++y) {
+    for (x = 0; x < 4; ++x) {
+      if (this.currentShape.rotations[this.currentShapeRotation][y][x]) {
+        ctx.fillRect(this.cellWidth * (this.currentX + x), this.cellHeight * (this.currentY + y), this.cellWidth, this.cellHeight)
+        ctx.strokeRect(this.cellWidth * (this.currentX + x), this.cellHeight * (this.currentY + y), this.cellWidth, this.cellHeight)
+      }
+    }
+  }
+}
+
+Board.prototype.drawPreview = function drawPreview () {
+  if (!this.previewEl) return
+  var ctx = this.previewCTX
+  var y = 0
+  var x = 0
+  ctx.clearRect(0, 0, el.offsetWidth, el.offsetHeight)
+  if (!this.queue || !this.queue[0]) return
+  var shape = this.queue[0]
+  ctx.fillStyle = shapes[shape].color
+  for (y = 0; y < 4; ++y) {
+    for (x = 0; x < 4; ++x) {
+      if (shapes[shape].rotations[0][y][x]) {
+        ctx.fillRect(this.cellWidth * x, this.cellHeight * y, this.cellWidth, this.cellHeight)
+        ctx.strokeRect(this.cellWidth * x, this.cellHeight * y, this.cellWidth, this.cellHeight)
+      }
+    }
+  }
 }
