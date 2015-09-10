@@ -16,6 +16,8 @@ try {
  */
 module.exports = Board
 
+var timers = []
+
 /**
  * Initalize `Board` with `attrs`
  * @param {Object} attrs
@@ -296,6 +298,10 @@ Board.prototype.validateMove = function validateMove (offsetX, offsetY, shape) {
  * @api private
  */
 Board.prototype.tick = function tick () {
+  if (!this.timer) {
+    this.timeout = null
+    return
+  }
   if (this.validateMove(0, 1)) {
     ++this.currentY
   } else {
@@ -309,6 +315,8 @@ Board.prototype.tick = function tick () {
   this.timeout = setTimeout(this.tick.bind(this), this.fallRate)
 }
 
+Board.prototype.timer = null
+
 Board.prototype.lose = function lose () {
   this.lost = true
   this.stop()
@@ -320,7 +328,9 @@ Board.prototype.lose = function lose () {
  * @api public
  */
 Board.prototype.start = function start () {
+  this.nextShape()
   if (!this.currentShape) return this.error('Missing current shape')
+  this.timer = true
   this.timeout = setTimeout(this.tick.bind(this), this.fallRate)
   this.emit('start')
 }
@@ -330,6 +340,7 @@ Board.prototype.start = function start () {
  * @api public
  */
 Board.prototype.stop = function stop () {
+  this.timer = null
   clearTimeout(this.timeout)
   this.timeout = null
 }

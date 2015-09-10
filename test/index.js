@@ -1,6 +1,6 @@
 /*global describe, it*/
 var assert = require('component/assert')
-var Board = require('../')
+var Board = require('../new')
 var shapes = require('../shapes')
 
 describe('Board', function () {
@@ -68,11 +68,13 @@ describe('Board#freeze', function () {
     var board = Board()
     board.queue = ['T']
     board.nextShape()
+    board.timer = true
     board.tick()
     board.tick()
     board.tick()
     board.tick()
     board.freeze()
+    board.stop()
     assert(board.grid[4][2] === board.currentShape.color)
     assert(board.grid[5][1] === board.currentShape.color)
     assert(board.grid[5][2] === board.currentShape.color)
@@ -98,6 +100,16 @@ describe('Board#clearGrid', function () {
     })
   })
 })
+
+// describe('Board#stop', function () {
+//   it('stops the game loop', function () {
+//     var board = Board()
+//     board.queue = ['T', 'S', 'Z']
+//     board.nextShape()
+//     board.start()
+//     board.stop()
+//   })
+// })
 
 // test('Board#sync', function (t) {
 //   t.plan(1)
