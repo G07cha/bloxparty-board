@@ -402,6 +402,13 @@ Board.prototype.error = function error (msg) {
  */
 Board.prototype.reset = function reset () {
   this.level = 0
+  this.currentY = 0
+  this.currentX = 0
+  this.currentShape = null
+  this.currentShapeRotation = 0
+  this.lineCount = 0
+  this.queue = []
+  this.fallRate = 600
   this.lost = false
   this.clearGrid()
   this.emit('change')
