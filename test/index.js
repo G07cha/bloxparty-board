@@ -101,6 +101,23 @@ describe('Board#clearGrid', function () {
   })
 })
 
+describe('Board#sync', function () {
+  it('syncs board data', function (done) {
+    var board = Board()
+    var newData = {
+      queue: ['S', 'Z', 'T', 'I']
+    }
+    board.queue = ['T', 'Z', 'S']
+    assert(board.queue.length === 3)
+    board.on('sync', function () {
+      assert(board.queue.length === 4)
+      done()
+    })
+    board.sync(newData)
+
+  })
+})
+
 // describe('Board#stop', function () {
 //   it('stops the game loop', function () {
 //     var board = Board()

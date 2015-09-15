@@ -6,6 +6,7 @@
   "dependencies": {
     "component/emitter": "*",
     "component/clone": "*",
-    "matthewmueller/uid": "*"
+    "matthewmueller/uid": "*",
+    "flitbit/diff": "*"
   }
 }

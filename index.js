@@ -1,22 +1,23 @@
 var uid = require('uid')
 var shapes = require('./shapes')
+var diff
 var Emitter
 var clone
 
 try {
   Emitter = require('component-emitter')
   clone = require('component-clone')
+  diff = require('deep-diff')
 } catch (e) {
   Emitter = require('emitter')
   clone = require('clone')
+  diff = require('flitbit/diff')
 }
 
 /**
  * Export `Board`
  */
 module.exports = Board
-
-
 
 /**
  * Initalize `Board` with `attrs`
@@ -47,6 +48,10 @@ function Board (attrs) {
   this.timeout = null
   this.lineCount = 0
   this.level = 0
+  this.diffProps = [
+    'grid',
+    'level',
+  ]
   if (this.movementEl) this.getElStats(attrs)
   this.clearGrid()
 }
@@ -187,56 +192,85 @@ Board.prototype.clearLines = function clearLines () {
  * @api private
  */
 Board.prototype.move = function move (direction) {
-  switch (direction) {
-    case 'left':
-      this.moveLeft()
-      break
-    case 'right':
-      this.moveRight()
-      break
-    case 'down':
-      this.moveDown()
-      break
-    case 'drop':
-      this.drop()
-      break
-    case 'rotate':
-      this.rotate()
-      break
-  }
+  this[direction]()
 }
 
 /**
  * Move the current piece down
  * @api private
  */
-Board.prototype.moveDown = function moveDown () {
-  if (this.validateMove(0, 1)) {
-    ++this.currentY
-    this.emit('change')
-  }
+Board.prototype.down = function down () {
+  if (!this.validateMove(0, 1)) return false
+  ++this.currentY
+  return true
 }
 
 /**
  * Move the current piece right
  * @api private
  */
-Board.prototype.moveRight = function moveRight () {
-  if (this.validateMove(1)) {
-    ++this.currentX
-    this.emit('change')
-  }
+Board.prototype.right = function right () {
+  if (!this.validateMove(1)) return false
+  ++this.currentX
+  return true
 }
 
 /**
  * Move the current piece left
  * @api private
  */
-Board.prototype.moveLeft = function moveLeft () {
-  if (this.validateMove(-1)) {
-    --this.currentX
-    this.emit('change')
+Board.prototype.left = function left () {
+  if (!this.validateMove(-1)) return false
+  --this.currentX
+  return true
+}
+
+/**
+ * Move the current piece down until it settles
+ * @api private
+ */
+Board.prototype.drop = function drop () {
+  while (this.validateMove(0, 1)) {
+    ++this.currentY
   }
+}
+
+/**
+ * Rotate the current piece
+ * @api private
+ */
+Board.prototype.rotate = function rotate () {
+  var rotation = this.currentShapeRotation === 3 ? 0 : this.currentShapeRotation + 1
+  var shape = this.currentShape.rotations[rotation]
+  if (!this.validateMove(0, 0, shape)) return false
+  this.currentShapeRotation = rotation
+  return true
+}
+
+Board.prototype.render = function render () {
+  this.endLoop = false
+  var self = this
+  var now
+  var time
+  var fps = 30
+  var then = Date.now()
+  var interval = 1000 / fps
+  var deltaTime
+
+  function loop (timestamp) {
+    if (self.endLoop) return
+    requestAnimationFrame(loop)
+    now = Date.now()
+    deltaTime = now - then
+
+    if (deltaTime > interval){
+      self.drawGrid()
+      self.drawCurrentShape()
+      then = now - (deltaTime % interval)
+    }
+  }
+
+  loop()
 }
 
 Board.prototype.addLines = function addLines (count) {
@@ -282,29 +316,6 @@ Board.prototype.randomLine = function randomLine () {
 }
 
 /**
- * Move the current piece down until it settles
- * @api private
- */
-Board.prototype.drop = function drop () {
-  while (this.validateMove(0, 1)) {
-    ++this.currentY
-  }
-  this.emit('change')
-}
-
-/**
- * Rotate the current piece
- * @api private
- */
-Board.prototype.rotate = function rotate () {
-  var rotation = this.currentShapeRotation === 3 ? 0 : this.currentShapeRotation + 1
-  var shape = this.currentShape.rotations[rotation]
-  if (!this.validateMove(0, 0, shape)) return
-  this.currentShapeRotation = rotation
-  this.emit('change')
-}
-
-/**
  * Checks if the resulting position of current shape will be feasible
  * @param  {Number} offsetX
  * @param  {Number} offsetY
@@ -342,8 +353,7 @@ Board.prototype.validateMove = function validateMove (offsetX, offsetY, shape) {
 Board.prototype.tick = function tick () {
   var self = this
   if (!this.currentShape) return
-  if (this.validateMove(0, 1)) {
-    ++this.currentY
+  if (this.move('down')) {
     this.emit('change')
   } else {
     // if the element settled
@@ -360,7 +370,7 @@ Board.prototype.tick = function tick () {
   }, this.fallRate)
 }
 
-Board.prototype.lose = function lost () {
+Board.prototype.lose = function lose () {
   this.lost = true
   this.stop()
   this.emit('lost')
@@ -372,7 +382,7 @@ Board.prototype.lose = function lost () {
  */
 Board.prototype.start = function start () {
   this.nextShape()
-  if (!this.currentShape) return this.error('Missing current shape')
+  if (!this.currentShape) throw new Error('Missing current shape')
   this.tick()
   this.emit('change')
   this.emit('start')
@@ -383,6 +393,7 @@ Board.prototype.start = function start () {
  * @api public
  */
 Board.prototype.stop = function stop () {
+  this.endLoop = true
   clearTimeout(this.timeout)
   this.timeout = null
 }
@@ -422,9 +433,12 @@ Board.prototype.reset = function reset () {
  */
 Board.prototype.sync = function sync (data) {
   var self = this
-  Object.keys(data).forEach(function (key) {
-    self[key] = data[key]
+  diff.observableDiff(this.json(), data, function (d) {
+    if (self.diffProps.indexOf(d.path[0]) !== -1) {
+      diff.applyChange(self, data, d)
+    }
   })
+  self.emit('sync')
 }
 
 Board.prototype.drawGrid = function drawGrid () {

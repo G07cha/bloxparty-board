@@ -16,6 +16,7 @@
   "dependencies": {
     "component-clone": "^0.2.2",
     "component-emitter": "^1.2.0",
+    "deep-diff": "^0.3.2",
     "uid": "0.0.2"
   }
 }
