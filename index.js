@@ -1,18 +1,8 @@
 var uid = require('uid')
 var shapes = require('./shapes')
-var diff
-var Emitter
-var clone
-
-try {
-  Emitter = require('component-emitter')
-  clone = require('component-clone')
-  diff = require('deep-diff')
-} catch (e) {
-  Emitter = require('emitter')
-  clone = require('clone')
-  diff = require('flitbit/diff')
-}
+var Emitter = require('component-emitter')
+var clone = require('component-clone')
+var diff = require('deep-diff')
 
 /**
  * Export `Board`
@@ -34,10 +24,9 @@ function Board (attrs) {
   this.movementCTX = null
   this.backgroundCTX = null
   this.previewCTX = null
-  this.rows = attrs.rows || 20
+  this.rows = attrs.rows || 22
   this.columns = attrs.columns || 10
   this.grid = attrs.grid || []
-  this.fallRate = attrs.fallRate || 600
   this.currentShapeRotation = 0
   this.currentShape = null
   this.queue = []
@@ -51,8 +40,12 @@ function Board (attrs) {
   this.diffProps = [
     'grid',
     'level',
+    'currentShape',
+    'currentShapeRotation',
+    'currentX',
+    'currentY'
   ]
-  if (this.movementEl) this.getElStats(attrs)
+  if (this.backgroundEl) this.getElStats(attrs)
   this.clearGrid()
 }
 
@@ -60,6 +53,84 @@ function Board (attrs) {
  * Mixins
  */
 Emitter(Board.prototype)
+
+/**
+ * Start this board
+ * @api public
+ */
+Board.prototype.start = function start () {
+  this.tick()
+  this.emit('change')
+  this.emit('start')
+}
+
+/**
+ * Stop this board
+ * @api public
+ */
+Board.prototype.stop = function stop () {
+  this.endLoop = true
+  clearTimeout(this.timeout)
+  this.timeout = null
+  this.emit('change')
+}
+
+/**
+ * Grab next shape from queue
+ * @api private
+ */
+Board.prototype.nextShape = function nextShape () {
+  this.currentShape = shapes[this.queue[0]]
+  this.queue.shift()
+  this.currentShapeRotation = 0
+  // position where the block will first appear on the board
+  this.currentX = 0
+  this.currentY = 0
+  this.emit('new shape')
+  this.emit('change')
+}
+
+/**
+ * Attempt to move piece in `direction`
+ * @api private
+ */
+Board.prototype.move = function move (direction) {
+  return this[direction]()
+}
+
+/**
+ * Game loop
+ * @api private
+ */
+Board.prototype.tick = function tick () {
+  var self = this
+  var valid = null
+  this.emit('change')
+
+  if (!this.currentShape) {
+    this.nextShape()
+    valid = true
+  } else {
+    valid = this.move('down')
+  }
+
+  if (!valid) {
+    if (this.currentY === 0) return this.lose()
+    this.freeze()
+    this.clearLines()
+    this.nextShape()
+  }
+
+  this.setFallRate()
+
+  this.timeout = setTimeout(function () {
+    self.tick()
+  }, this.fallRate)
+}
+
+Board.prototype.setFallRate = function setFallRate () {
+  this.fallRate = ((11 - this.level) * 50)
+}
 
 /**
  * Return a JSON representation of this board
@@ -97,25 +168,10 @@ Board.prototype.getElStats = function getElStats (attrs) {
   // this.previewCTX.translate(translate, translate)
   // this.previewCTX.save()
 
-  this.elWidth = this.movementEl.offsetWidth
-  this.elHeight = this.movementEl.offsetHeight
+  this.elWidth = this.backgroundEl.offsetWidth
+  this.elHeight = this.backgroundEl.offsetHeight
   this.cellWidth = this.elWidth / this.columns
-  this.cellHeight = this.elHeight / this.rows
-}
-
-/**
- * Grab next shape from queue
- * @api private
- */
-Board.prototype.nextShape = function nextShape () {
-  this.currentShape = shapes[this.queue[0]]
-  this.queue.shift()
-  this.currentShapeRotation = 0
-  // position where the block will first appear on the board
-  this.currentX = 0
-  this.currentY = 0
-  this.emit('new shape')
-  this.emit('change')
+  this.cellHeight = this.elHeight / (this.rows - 2)
 }
 
 /**
@@ -185,14 +241,6 @@ Board.prototype.clearLines = function clearLines () {
   if (this.lineCount >= 91) this.level = 10
 
   this.emit('change')
-}
-
-/**
- * Attempt to move piece in `direction`
- * @api private
- */
-Board.prototype.move = function move (direction) {
-  this[direction]()
 }
 
 /**
@@ -346,56 +394,10 @@ Board.prototype.validateMove = function validateMove (offsetX, offsetY, shape) {
   return true
 }
 
-/**
- * Game loop
- * @api private
- */
-Board.prototype.tick = function tick () {
-  var self = this
-  if (!this.currentShape) return
-  if (this.move('down')) {
-    this.emit('change')
-  } else {
-    // if the element settled
-    this.freeze()
-    this.clearLines()
-    this.emit('settled')
-    if (this.currentY === 0) return this.lose()
-    this.nextShape()
-    this.emit('change')
-  }
-  this.fallRate = ((11 - this.level) * 50)
-  this.timeout = setTimeout(function () {
-    self.tick()
-  }, this.fallRate)
-}
-
 Board.prototype.lose = function lose () {
   this.lost = true
   this.stop()
-  this.emit('lost')
-}
-
-/**
- * Start this board
- * @api public
- */
-Board.prototype.start = function start () {
-  this.nextShape()
-  if (!this.currentShape) throw new Error('Missing current shape')
-  this.tick()
-  this.emit('change')
-  this.emit('start')
-}
-
-/**
- * Stop this board
- * @api public
- */
-Board.prototype.stop = function stop () {
-  this.endLoop = true
-  clearTimeout(this.timeout)
-  this.timeout = null
+  this.emit('lose')
 }
 
 /**
@@ -412,14 +414,14 @@ Board.prototype.error = function error (msg) {
  * @api public
  */
 Board.prototype.reset = function reset () {
+  clearTimeout(this.timeout)
+  this.endLoop = true
   this.level = 0
   this.currentY = 0
   this.currentX = 0
   this.currentShape = null
   this.currentShapeRotation = 0
   this.lineCount = 0
-  this.queue = []
-  this.fallRate = 600
   this.lost = false
   this.clearGrid()
   this.emit('change')
@@ -438,7 +440,7 @@ Board.prototype.sync = function sync (data) {
       diff.applyChange(self, data, d)
     }
   })
-  self.emit('sync')
+  this.emit('sync')
 }
 
 Board.prototype.drawGrid = function drawGrid () {
@@ -461,7 +463,7 @@ Board.prototype.drawGrid = function drawGrid () {
   ctx.clearRect(0, 0, this.elWidth, this.elHeight)
   // renderGrid()
   for (x = 0; x < 10; ++x) {
-    for (y = 0; y < 20; ++y) {
+    for (y = 0; y < 22; ++y) {
       if (this.grid[y][x]) {
         blocks[this.grid[y][x]].push([x, y])
       }
@@ -470,8 +472,8 @@ Board.prototype.drawGrid = function drawGrid () {
   for (var color in blocks) {
     ctx.fillStyle = color
     blocks[color].forEach(function (cell) {
-      ctx.fillRect(cellWidth * cell[0], cellHeight * cell[1], cellWidth, cellHeight)
-      ctx.strokeRect(cellWidth * cell[0], cellHeight * cell[1], cellWidth, cellHeight)
+      ctx.fillRect(cellWidth * cell[0], (cellHeight * cell[1]) - (cellHeight * 2), cellWidth, cellHeight)
+      ctx.strokeRect(cellWidth * cell[0], (cellHeight * cell[1]) - (cellHeight * 2), cellWidth, cellHeight)
     })
   }
 }
@@ -481,13 +483,13 @@ Board.prototype.drawCurrentShape = function drawCurrentShape () {
   var ctx = this.movementCTX
   var y = 0
   var x = 0
-  ctx.clearRect(0, 0, this.elWidth, this.elHeight)
+  ctx.clearRect(0, -1, this.elWidth, this.elHeight + 1)
   ctx.fillStyle = this.currentShape.color
   for (y = 0; y < 4; ++y) {
     for (x = 0; x < 4; ++x) {
       if (this.currentShape.rotations[this.currentShapeRotation][y][x]) {
-        ctx.fillRect(this.cellWidth * (this.currentX + x), this.cellHeight * (this.currentY + y), this.cellWidth, this.cellHeight)
-        ctx.strokeRect(this.cellWidth * (this.currentX + x), this.cellHeight * (this.currentY + y), this.cellWidth, this.cellHeight)
+        ctx.fillRect(this.cellWidth * (this.currentX + x), (this.cellHeight * (this.currentY + y)) - (this.cellHeight * 2), this.cellWidth, this.cellHeight)
+        ctx.strokeRect(this.cellWidth * (this.currentX + x), (this.cellHeight * (this.currentY + y)) - (this.cellHeight * 2), this.cellWidth, this.cellHeight)
       }
     }
   }

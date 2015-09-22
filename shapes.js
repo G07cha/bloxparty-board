@@ -1,5 +1,5 @@
 module.exports = {
-  'Z': {
+  'S': {
     color: 'green',
     rotations: [
       [
@@ -175,7 +175,7 @@ module.exports = {
       ]
     ]
   },
-  'S': {
+  'Z': {
     color: 'red',
     rotations: [
       [
