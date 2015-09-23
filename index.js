@@ -105,7 +105,6 @@ Board.prototype.move = function move (direction) {
 Board.prototype.tick = function tick () {
   var self = this
   var valid = null
-  this.emit('change')
 
   if (!this.currentShape) {
     this.nextShape()
@@ -122,7 +121,7 @@ Board.prototype.tick = function tick () {
   }
 
   this.setFallRate()
-
+  this.emit('change')
   this.timeout = setTimeout(function () {
     self.tick()
   }, this.fallRate)
@@ -186,6 +185,7 @@ Board.prototype.freeze = function freeze () {
       }
     }
   }
+  this.emit('grid')
   this.emit('change')
 }
 
@@ -239,7 +239,7 @@ Board.prototype.clearLines = function clearLines () {
   if (this.lineCount <= 0) this.level = 1
   if ((this.lineCount >= 1) && (this.lineCount <= 90)) this.level = Math.floor(1 + ((this.lineCount - 1) / 5))
   if (this.lineCount >= 91) this.level = 10
-
+  this.emit('grid')
   this.emit('change')
 }
 
@@ -250,6 +250,7 @@ Board.prototype.clearLines = function clearLines () {
 Board.prototype.down = function down () {
   if (!this.validateMove(0, 1)) return false
   ++this.currentY
+  this.emit('change')
   return true
 }
 
@@ -260,6 +261,7 @@ Board.prototype.down = function down () {
 Board.prototype.right = function right () {
   if (!this.validateMove(1)) return false
   ++this.currentX
+  this.emit('change')
   return true
 }
 
@@ -270,6 +272,7 @@ Board.prototype.right = function right () {
 Board.prototype.left = function left () {
   if (!this.validateMove(-1)) return false
   --this.currentX
+  this.emit('change')
   return true
 }
 
@@ -281,6 +284,7 @@ Board.prototype.drop = function drop () {
   while (this.validateMove(0, 1)) {
     ++this.currentY
   }
+  this.emit('change')
 }
 
 /**
@@ -292,6 +296,7 @@ Board.prototype.rotate = function rotate () {
   var shape = this.currentShape.rotations[rotation]
   if (!this.validateMove(0, 0, shape)) return false
   this.currentShapeRotation = rotation
+  this.emit('change')
   return true
 }
 
@@ -336,6 +341,7 @@ Board.prototype.addLines = function addLines (count) {
     count--
   }
   this.grid = newGrid
+  this.emit('grid')
   this.emit('change')
 }
 
@@ -424,6 +430,7 @@ Board.prototype.reset = function reset () {
   this.lineCount = 0
   this.lost = false
   this.clearGrid()
+  this.emit('grid')
   this.emit('change')
   this.emit('reset')
 }
@@ -469,6 +476,7 @@ Board.prototype.drawGrid = function drawGrid () {
       }
     }
   }
+
   for (var color in blocks) {
     ctx.fillStyle = color
     blocks[color].forEach(function (cell) {
