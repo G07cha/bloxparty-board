@@ -69,9 +69,20 @@ Board.prototype.start = function start () {
  * @api public
  */
 Board.prototype.stop = function stop () {
-  this.endLoop = true
   clearTimeout(this.timeout)
-  this.timeout = null
+  this.set('endLoop', true)
+  this.set('timeout', null)
+  this.emit('change')
+}
+
+/**
+ * Set `prop` value to `value`
+ * @param {String} prop Property name
+ * @param {Mixed} data Property value
+ */
+Board.prototype.set = function set(prop, value) {
+  this[prop] = clone(data)
+  this.emit('change ' + prop, value)
   this.emit('change')
 }
 
@@ -80,12 +91,10 @@ Board.prototype.stop = function stop () {
  * @api private
  */
 Board.prototype.nextShape = function nextShape () {
-  this.currentShape = shapes[this.queue[0]]
-  this.queue.shift()
-  this.currentShapeRotation = 0
-  // position where the block will first appear on the board
-  this.currentX = 0
-  this.currentY = 0
+  this.set('currentShape', shapes[this.queue.shift()])
+  this.set('currentShapeRotation', 0)
+  this.set('currentX', 5)
+  this.set('currentY', 0)
   this.emit('new shape')
   this.emit('change')
 }
@@ -127,13 +136,18 @@ Board.prototype.tick = function tick () {
   }, this.fallRate)
 }
 
+/**
+ * Set the fall rate of current shape
+ * @api private
+ */
 Board.prototype.setFallRate = function setFallRate () {
-  this.fallRate = ((11 - this.level) * 50)
+  this.set('fallRate', ((11 - this.level) * 50))
 }
 
 /**
  * Return a JSON representation of this board
  * @return {JSON} JSON Object
+ * @api public
  */
 Board.prototype.json = function json () {
   var json = {
@@ -149,7 +163,11 @@ Board.prototype.json = function json () {
   return json
 }
 
-Board.prototype.getElStats = function getElStats (attrs) {
+/**
+ * Get 2d Contexts and sizes of canvas elements
+ * @api public
+ */
+Board.prototype.getElStats = function getElStats () {
   this.backgroundCTX = this.backgroundEl.getContext('2d')
   this.movementCTX = this.movementEl.getContext('2d')
   // this.previewCTX = this.previewEl.getContext('2d')
@@ -295,11 +313,15 @@ Board.prototype.rotate = function rotate () {
   var rotation = this.currentShapeRotation === 3 ? 0 : this.currentShapeRotation + 1
   var shape = this.currentShape.rotations[rotation]
   if (!this.validateMove(0, 0, shape)) return false
-  this.currentShapeRotation = rotation
+  this.set('currentShapeRotation', rotation)
   this.emit('change')
   return true
 }
 
+/**
+ * Render loop
+ * @api public
+ */
 Board.prototype.render = function render () {
   this.endLoop = false
   var self = this
@@ -326,6 +348,11 @@ Board.prototype.render = function render () {
   loop()
 }
 
+/**
+ * Add `count` garbage lines to this board
+ * @param {Number} count Number of lines to add
+ * @api public
+ */
 Board.prototype.addLines = function addLines (count) {
   var newGrid = clone(this.grid)
   var x = 0
@@ -340,11 +367,16 @@ Board.prototype.addLines = function addLines (count) {
     newGrid.push(this.randomLine())
     count--
   }
-  this.grid = newGrid
+  this.set('grid', newGrid)
   this.emit('grid')
   this.emit('change')
 }
 
+/**
+ * Generate a random garbage line
+ * @return {Array} 2d Array
+ * @api public
+ */
 Board.prototype.randomLine = function randomLine () {
   var colors = Object.keys(shapes).map(function (shape) {
     return shapes[shape].color
@@ -400,8 +432,12 @@ Board.prototype.validateMove = function validateMove (offsetX, offsetY, shape) {
   return true
 }
 
+/**
+ * Mark this board as `lost`
+ * @api public
+ */
 Board.prototype.lose = function lose () {
-  this.lost = true
+  this.set('lost', true)
   this.stop()
   this.emit('lose')
 }
@@ -421,14 +457,14 @@ Board.prototype.error = function error (msg) {
  */
 Board.prototype.reset = function reset () {
   clearTimeout(this.timeout)
-  this.endLoop = true
-  this.level = 0
-  this.currentY = 0
-  this.currentX = 0
-  this.currentShape = null
-  this.currentShapeRotation = 0
-  this.lineCount = 0
-  this.lost = false
+  this.set('endLoop', true)
+  this.set('level', 0)
+  this.set('currentY', 0)
+  this.set('currentX', 0)
+  this.set('currentShape', null)
+  this.set('currentShapeRotation', null)
+  this.set('lineCount', 0)
+  this.set('lost', false)
   this.clearGrid()
   this.emit('grid')
   this.emit('change')
@@ -450,6 +486,10 @@ Board.prototype.sync = function sync (data) {
   this.emit('sync')
 }
 
+/**
+ * Render the grid to a canvas element
+ * @api public
+ */
 Board.prototype.drawGrid = function drawGrid () {
   var ctx = this.backgroundCTX
   var columns = this.columns
@@ -486,6 +526,10 @@ Board.prototype.drawGrid = function drawGrid () {
   }
 }
 
+/**
+ * Draw the currently falling shape to a canvas element
+ * @api public
+ */
 Board.prototype.drawCurrentShape = function drawCurrentShape () {
   if (!this.currentShape) return
   var ctx = this.movementCTX
@@ -503,6 +547,10 @@ Board.prototype.drawCurrentShape = function drawCurrentShape () {
   }
 }
 
+/**
+ * Render the next piece in the queue to a canvas element
+ * @api public
+ */
 Board.prototype.drawPreview = function drawPreview () {
   if (!this.previewEl) return
   var ctx = this.previewCTX
