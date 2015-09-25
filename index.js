@@ -78,10 +78,10 @@ Board.prototype.stop = function stop () {
 /**
  * Set `prop` value to `value`
  * @param {String} prop Property name
- * @param {Mixed} data Property value
+ * @param {Mixed} value Property value
  */
 Board.prototype.set = function set(prop, value) {
-  this[prop] = clone(data)
+  this[prop] = clone(value)
   this.emit('change ' + prop, value)
   this.emit('change')
 }
