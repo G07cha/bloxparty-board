@@ -46,7 +46,7 @@ function Board (attrs) {
     'currentY'
   ]
   if (this.backgroundEl) this.getElStats(attrs)
-  if (this.previewEl) this.getElStats(attrs)
+  if (this.previewEl) this.getPreviewElStats(attrs)
   this.clearGrid()
 }
 
@@ -571,7 +571,7 @@ Board.prototype.drawPreview = function drawPreview () {
   var ctx = this.previewCTX
   var y = 0
   var x = 0
-  ctx.clearRect(0, 0, el.offsetWidth, el.offsetHeight)
+  ctx.clearRect(0, 0, this.previewEl.offsetWidth, this.previewEl.offsetHeight)
   if (!this.queue || !this.queue[0]) return
   var shape = this.queue[0]
   ctx.fillStyle = shapes[shape].color
