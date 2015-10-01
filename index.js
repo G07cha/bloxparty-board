@@ -172,6 +172,8 @@ Board.prototype.getElStats = function getElStats () {
   this.backgroundCTX = this.backgroundEl.getContext('2d')
   this.movementCTX = this.movementEl.getContext('2d')
 
+  var translate = (this.backgroundCTX.lineWidth % 2) / 2
+
   this.backgroundCTX.setTransform(1, 0, 0, 1, 0, 0)
   this.backgroundCTX.translate(translate, translate)
   this.backgroundCTX.save()
@@ -193,7 +195,7 @@ Board.prototype.getElStats = function getElStats () {
 Board.prototype.getPreviewElStats = function getPreviewElStats () {
   if (!this.previewEl) return
   this.previewCTX = this.previewEl.getContext('2d')
-  var translate = (this.backgroundCTX.lineWidth % 2) / 2
+  var translate = (this.previewCTX.lineWidth % 2) / 2
   this.previewCTX.setTransform(1, 0, 0, 1, 0, 0)
   this.previewCTX.translate(translate, translate)
   this.previewCTX.save()
