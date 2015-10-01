@@ -46,6 +46,7 @@ function Board (attrs) {
     'currentY'
   ]
   if (this.backgroundEl) this.getElStats(attrs)
+  if (this.previewEl) this.getElStats(attrs)
   this.clearGrid()
 }
 
@@ -170,9 +171,7 @@ Board.prototype.json = function json () {
 Board.prototype.getElStats = function getElStats () {
   this.backgroundCTX = this.backgroundEl.getContext('2d')
   this.movementCTX = this.movementEl.getContext('2d')
-  this.previewCTX = this.previewEl ? this.previewEl.getContext('2d') : null
 
-  var translate = (this.backgroundCTX.lineWidth % 2) / 2
   this.backgroundCTX.setTransform(1, 0, 0, 1, 0, 0)
   this.backgroundCTX.translate(translate, translate)
   this.backgroundCTX.save()
@@ -181,16 +180,28 @@ Board.prototype.getElStats = function getElStats () {
   this.movementCTX.translate(translate, translate)
   this.movementCTX.save()
 
-  if (this.previewCTX) {
-    this.previewCTX.setTransform(1, 0, 0, 1, 0, 0)
-    this.previewCTX.translate(translate, translate)
-    this.previewCTX.save()
-  }
-
   this.elWidth = this.backgroundEl.offsetWidth
   this.elHeight = this.backgroundEl.offsetHeight
   this.cellWidth = this.elWidth / this.columns
   this.cellHeight = this.elHeight / (this.rows - 2)
+}
+
+/**
+ * Get 2d context and size
+ * @return {[type]} [description]
+ */
+Board.prototype.getPreviewElStats = function getPreviewElStats () {
+  if (!this.previewEl) return
+  this.previewCTX = this.previewEl.getContext('2d')
+  var translate = (this.backgroundCTX.lineWidth % 2) / 2
+  this.previewCTX.setTransform(1, 0, 0, 1, 0, 0)
+  this.previewCTX.translate(translate, translate)
+  this.previewCTX.save()
+
+  this.elWidth = this.previewEl.offsetWidth
+  this.elHeight = this.previewEl.offsetHeight
+  this.cellWidth = this.elWidth / 4
+  this.cellHeight = this.elHeight / 4
 }
 
 /**
