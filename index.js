@@ -30,7 +30,7 @@ function Board (attrs) {
   this.currentShapeRotation = 0
   this.currentShape = null
   this.queue = []
-  this.currentX = 0
+  this.currentX = 3
   this.currentY = 0
   this.lost = false
   this.quit = false
@@ -94,7 +94,7 @@ Board.prototype.set = function set(prop, value) {
 Board.prototype.nextShape = function nextShape () {
   this.set('currentShape', shapes[this.queue.shift()])
   this.set('currentShapeRotation', 0)
-  this.set('currentX', 5)
+  this.set('currentX', 3)
   this.set('currentY', 0)
   this.emit('new shape')
   this.emit('change')
@@ -475,7 +475,7 @@ Board.prototype.reset = function reset () {
   this.set('endLoop', true)
   this.set('level', 0)
   this.set('currentY', 0)
-  this.set('currentX', 0)
+  this.set('currentX', 3)
   this.set('currentShape', null)
   this.set('currentShapeRotation', null)
   this.set('lineCount', 0)
