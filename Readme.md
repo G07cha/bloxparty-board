@@ -7,3 +7,5 @@
 [npm-url]: https://www.npmjs.com/package/bloxparty-board
 [travis-image]: https://img.shields.io/travis/kvnneff/bloxparty-board.svg?style=flat-square
 [travis-url]: https://travis-ci.org/kvnneff/bloxparty-board
+
+The core board for [Blox Party](https://github.com/kvnneff/bloxparty)

@@ -170,7 +170,7 @@ Board.prototype.json = function json () {
 Board.prototype.getElStats = function getElStats () {
   this.backgroundCTX = this.backgroundEl.getContext('2d')
   this.movementCTX = this.movementEl.getContext('2d')
-  // this.previewCTX = this.previewEl.getContext('2d')
+  this.previewCTX = this.previewEl ? this.previewEl.getContext('2d') : null
 
   var translate = (this.backgroundCTX.lineWidth % 2) / 2
   this.backgroundCTX.setTransform(1, 0, 0, 1, 0, 0)
@@ -181,9 +181,11 @@ Board.prototype.getElStats = function getElStats () {
   this.movementCTX.translate(translate, translate)
   this.movementCTX.save()
 
-  // this.previewCTX.setTransform(1, 0, 0, 1, 0, 0)
-  // this.previewCTX.translate(translate, translate)
-  // this.previewCTX.save()
+  if (this.previewCTX) {
+    this.previewCTX.setTransform(1, 0, 0, 1, 0, 0)
+    this.previewCTX.translate(translate, translate)
+    this.previewCTX.save()
+  }
 
   this.elWidth = this.backgroundEl.offsetWidth
   this.elHeight = this.backgroundEl.offsetHeight
