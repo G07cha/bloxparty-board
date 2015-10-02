@@ -92,10 +92,10 @@ Board.prototype.set = function set(prop, value) {
  * @api private
  */
 Board.prototype.nextShape = function nextShape () {
-  this.set('currentShape', shapes[this.queue.shift()])
   this.set('currentShapeRotation', 0)
   this.set('currentX', 3)
   this.set('currentY', 0)
+  this.set('currentShape', shapes[this.queue.shift()])
   this.emit('new shape')
   this.emit('change')
 }
