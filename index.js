@@ -1,3 +1,4 @@
+/*global requestAnimationFrame*/
 var uid = require('uid')
 var shapes = require('./shapes')
 var Emitter = require('component-emitter')
@@ -33,6 +34,7 @@ function Board (attrs) {
   this.currentX = 3
   this.currentY = 0
   this.lost = false
+  this.active = false
   this.quit = false
   this.timeout = null
   this.lineCount = 0
@@ -61,6 +63,7 @@ Emitter(Board.prototype)
  */
 Board.prototype.start = function start () {
   this.tick()
+  this.set('active', true)
   this.emit('change')
   this.emit('start')
 }
@@ -73,6 +76,7 @@ Board.prototype.stop = function stop () {
   clearTimeout(this.timeout)
   this.set('endLoop', true)
   this.set('timeout', null)
+  this.set('active', false)
   this.emit('change')
 }
 
@@ -81,7 +85,7 @@ Board.prototype.stop = function stop () {
  * @param {String} prop Property name
  * @param {Mixed} value Property value
  */
-Board.prototype.set = function set(prop, value) {
+Board.prototype.set = function set (prop, value) {
   this[prop] = clone(value)
   this.emit('change ' + prop, value)
   this.emit('change')
@@ -158,7 +162,8 @@ Board.prototype.json = function json () {
     currentShape: this.currentShape,
     currentX: this.currentX,
     currentY: this.currentY,
-    level: this.level
+    level: this.level,
+    active: this.active
   }
 
   return json
@@ -214,7 +219,7 @@ Board.prototype.freeze = function freeze () {
   for (var y = 0; y < 4; ++y) {
     for (var x = 0; x < 4; ++x) {
       if (this.currentShape.rotations[this.currentShapeRotation][y][x]) {
-        this.grid[y + this.currentY ][x + this.currentX ] = this.currentShape.color
+        this.grid[ y + this.currentY ][ x + this.currentX ] = this.currentShape.color
       }
     }
   }
@@ -256,7 +261,7 @@ Board.prototype.clearLines = function clearLines () {
     if (rowFilled) {
       for (var yy = y; yy > 0; --yy) {
         for (x = 0; x < this.columns; ++x) {
-          this.grid[yy][x] = this.grid[yy - 1 ][x]
+          this.grid[yy][x] = this.grid[yy - 1][x]
         }
       }
       ++y
@@ -341,7 +346,6 @@ Board.prototype.render = function render () {
   this.endLoop = false
   var self = this
   var now
-  var time
   var fps = 30
   var then = Date.now()
   var interval = 1000 / fps
@@ -353,7 +357,7 @@ Board.prototype.render = function render () {
     now = Date.now()
     deltaTime = now - then
 
-    if (deltaTime > interval){
+    if (deltaTime > interval) {
       self.drawGrid()
       self.drawCurrentShape()
       then = now - (deltaTime % interval)
@@ -433,9 +437,9 @@ Board.prototype.validateMove = function validateMove (offsetX, offsetY, shape) {
   for (var y = 0; y < 4; ++y) {
     for (var x = 0; x < 4; ++x) {
       if (shape[y][x]) {
-        if (typeof this.grid[y + offsetY ] === 'undefined' ||
-          typeof this.grid[y + offsetY ][x + offsetX ] === 'undefined' ||
-          this.grid[y + offsetY ][x + offsetX ] ||
+        if (typeof this.grid[y + offsetY] === 'undefined' ||
+          typeof this.grid[y + offsetY][x + offsetX] === 'undefined' ||
+          this.grid[y + offsetY][x + offsetX] ||
           x + offsetX < 0 ||
           y + offsetY >= this.rows ||
           x + offsetX >= this.columns) {
@@ -507,8 +511,6 @@ Board.prototype.sync = function sync (data) {
  */
 Board.prototype.drawGrid = function drawGrid () {
   var ctx = this.backgroundCTX
-  var columns = this.columns
-  var rows = this.rows
   var cellWidth = this.cellWidth
   var cellHeight = this.cellHeight
   var y = 0
@@ -583,4 +585,39 @@ Board.prototype.drawPreview = function drawPreview () {
       }
     }
   }
+}
+
+/**
+ * Draw `text` on the canvas
+ * @param  {String} text Text to draw
+ * @api public
+ */
+Board.prototype.drawText = function drawText (text) {
+  if (!this.backgroundEl) return
+  var ctx = this.backgroundCTX
+  var x = this.backgroundEl.width / 2
+  var y = this.backgroundEl.height / 2
+  ctx.fillStyle = 'white'
+  ctx.textAlign = 'center'
+  ctx.font = '16pt Helvetica'
+  wrapText(ctx, text, x, y, 200, 25)
+}
+
+function wrapText (context, text, x, y, maxWidth, lineHeight) {
+  var words = text.split(' ')
+  var line = ''
+
+  for (var n = 0; n < words.length; n++) {
+    var testLine = line + words[n] + ' '
+    var metrics = context.measureText(testLine)
+    var testWidth = metrics.width
+    if (testWidth > maxWidth && n > 0) {
+      context.fillText(line, x, y)
+      line = words[n] + ' '
+      y += lineHeight
+    } else {
+      line = testLine
+    }
+  }
+  context.fillText(line, x, y)
 }
