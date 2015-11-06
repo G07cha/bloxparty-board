@@ -4,6 +4,7 @@ var shapes = require('./shapes')
 var Emitter = require('component-emitter')
 var clone = require('component-clone')
 var diff = require('deep-diff')
+var c = require('color')
 
 /**
  * Export `Board`
@@ -513,6 +514,7 @@ Board.prototype.drawGrid = function drawGrid () {
   var ctx = this.backgroundCTX
   var cellWidth = this.cellWidth
   var cellHeight = this.cellHeight
+  ctx.imageSmoothingEnabled = false
   var y = 0
   var x = 0
   var blocks = {
@@ -535,10 +537,43 @@ Board.prototype.drawGrid = function drawGrid () {
   }
 
   for (var color in blocks) {
-    ctx.fillStyle = color
     blocks[color].forEach(function (cell) {
-      ctx.fillRect(cellWidth * cell[0], (cellHeight * cell[1]) - (cellHeight * 2), cellWidth, cellHeight)
-      ctx.strokeRect(cellWidth * cell[0], (cellHeight * cell[1]) - (cellHeight * 2), cellWidth, cellHeight)
+      var x = cellWidth * cell[0]
+      var y = (cellHeight * cell[1]) - (cellHeight * 2)
+      var bevelWidth = cellWidth * 0.1
+
+      var innerX = x + (cellWidth * 0.1)
+      var innerY = y + (cellHeight * 0.1)
+      var innerWidth = cellWidth - (cellWidth * 0.1) * 2
+      var innerHeight = cellWidth - (cellHeight * 0.1) * 2
+
+      var topLeftColor = c(color).lighten(0.6).rgbString()
+      var bottomRightColor = c(color).darken(0.5).rgbString()
+
+      ctx.fillStyle = color
+      ctx.fillRect(innerX, innerY, innerWidth, innerHeight)
+
+      ctx.fillStyle = topLeftColor
+      ctx.beginPath()
+      ctx.moveTo(x, y)
+      ctx.lineTo(x + cellWidth, y)
+      ctx.lineTo(x + cellWidth - bevelWidth, y + bevelWidth)
+      ctx.lineTo(x + bevelWidth, y + bevelWidth)
+      ctx.lineTo(x + bevelWidth, y + cellHeight - bevelWidth)
+      ctx.lineTo(x, y + cellHeight)
+      ctx.closePath()
+      ctx.fill()
+
+      ctx.fillStyle = bottomRightColor
+      ctx.beginPath()
+      ctx.moveTo(x + cellWidth, y)
+      ctx.lineTo(x + cellWidth, y + cellHeight)
+      ctx.lineTo(x, y + cellHeight)
+      ctx.lineTo(x + bevelWidth, y + cellHeight - bevelWidth)
+      ctx.lineTo(x + cellWidth - bevelWidth, y + cellHeight - bevelWidth)
+      ctx.lineTo(x + cellWidth - bevelWidth, y + bevelWidth)
+      ctx.closePath()
+      ctx.fill()
     })
   }
 }
@@ -550,15 +585,51 @@ Board.prototype.drawGrid = function drawGrid () {
 Board.prototype.drawCurrentShape = function drawCurrentShape () {
   if (!this.currentShape) return
   var ctx = this.movementCTX
+  var cellWidth = this.cellWidth
+  var cellHeight = this.cellHeight
   var y = 0
   var x = 0
   ctx.clearRect(0, -1, this.elWidth, this.elHeight + 1)
-  ctx.fillStyle = this.currentShape.color
+  var color = this.currentShape.color
   for (y = 0; y < 4; ++y) {
     for (x = 0; x < 4; ++x) {
       if (this.currentShape.rotations[this.currentShapeRotation][y][x]) {
-        ctx.fillRect(this.cellWidth * (this.currentX + x), (this.cellHeight * (this.currentY + y)) - (this.cellHeight * 2), this.cellWidth, this.cellHeight)
-        ctx.strokeRect(this.cellWidth * (this.currentX + x), (this.cellHeight * (this.currentY + y)) - (this.cellHeight * 2), this.cellWidth, this.cellHeight)
+        ctx.fillStyle = color
+
+        var cellX = cellWidth * (this.currentX + x)
+        var cellY = (cellHeight * (this.currentY + y)) - (this.cellHeight * 2)
+        var bevelWidth = cellWidth * 0.1
+        var innerX = cellX + (cellWidth * 0.1)
+        var innerY = cellY + (cellHeight * 0.1)
+        var innerWidth = cellWidth - (cellWidth * 0.1) * 2
+        var innerHeight = cellWidth - (cellHeight * 0.1) * 2
+        var topLeftColor = c(color).lighten(0.6).rgbString()
+        var bottomRightColor = c(color).darken(0.5).rgbString()
+
+        ctx.fillStyle = color
+        ctx.fillRect(innerX, innerY, innerWidth, innerHeight)
+
+        ctx.fillStyle = topLeftColor
+        ctx.beginPath()
+        ctx.moveTo(cellX, cellY)
+        ctx.lineTo(cellX + cellWidth, cellY)
+        ctx.lineTo(cellX + cellWidth - bevelWidth, cellY + bevelWidth)
+        ctx.lineTo(cellX + bevelWidth, cellY + bevelWidth)
+        ctx.lineTo(cellX + bevelWidth, cellY + cellHeight - bevelWidth)
+        ctx.lineTo(cellX, cellY + cellHeight)
+        ctx.closePath()
+        ctx.fill()
+
+        ctx.fillStyle = bottomRightColor
+        ctx.beginPath()
+        ctx.moveTo(cellX + cellWidth, cellY)
+        ctx.lineTo(cellX + cellWidth, cellY + cellHeight)
+        ctx.lineTo(cellX, cellY + cellHeight)
+        ctx.lineTo(cellX + bevelWidth, cellY + cellHeight - bevelWidth)
+        ctx.lineTo(cellX + cellWidth - bevelWidth, cellY + cellHeight - bevelWidth)
+        ctx.lineTo(cellX + cellWidth - bevelWidth, cellY + bevelWidth)
+        ctx.closePath()
+        ctx.fill()
       }
     }
   }
@@ -571,17 +642,52 @@ Board.prototype.drawCurrentShape = function drawCurrentShape () {
 Board.prototype.drawPreview = function drawPreview () {
   if (!this.previewEl) return
   var ctx = this.previewCTX
+  ctx.imageSmoothingEnabled = false
   var y = 0
   var x = 0
-  ctx.clearRect(0, 0, this.previewEl.offsetWidth, this.previewEl.offsetHeight)
+  ctx.clearRect(-1, -1, this.previewEl.offsetWidth, this.previewEl.offsetHeight)
   if (!this.queue || !this.queue[0]) return
   var shape = this.queue[0]
-  ctx.fillStyle = shapes[shape].color
+  var color = shapes[shape].color
   for (y = 0; y < 4; ++y) {
     for (x = 0; x < 4; ++x) {
       if (shapes[shape].rotations[0][y][x]) {
-        ctx.fillRect(this.cellWidth * x, this.cellHeight * y, this.cellWidth, this.cellHeight)
-        ctx.strokeRect(this.cellWidth * x, this.cellHeight * y, this.cellWidth, this.cellHeight)
+        var cellWidth = this.cellWidth
+        var cellHeight = this.cellHeight
+        var cellX = cellWidth * x
+        var cellY = cellHeight * y
+        var bevelWidth = cellWidth * 0.1
+        var innerX = cellX + (cellWidth * 0.1)
+        var innerY = cellY + (cellHeight * 0.1)
+        var innerWidth = cellWidth - (cellWidth * 0.1) * 2
+        var innerHeight = cellWidth - (cellHeight * 0.1) * 2
+        var topLeftColor = c(color).lighten(0.6).rgbString()
+        var bottomRightColor = c(color).darken(0.5).rgbString()
+
+        ctx.fillStyle = color
+        ctx.fillRect(innerX, innerY, innerWidth, innerHeight)
+
+        ctx.fillStyle = topLeftColor
+        ctx.beginPath()
+        ctx.moveTo(cellX, cellY)
+        ctx.lineTo(cellX + cellWidth, cellY)
+        ctx.lineTo(cellX + cellWidth - bevelWidth, cellY + bevelWidth)
+        ctx.lineTo(cellX + bevelWidth, cellY + bevelWidth)
+        ctx.lineTo(cellX + bevelWidth, cellY + cellHeight - bevelWidth)
+        ctx.lineTo(cellX, cellY + cellHeight)
+        ctx.closePath()
+        ctx.fill()
+
+        ctx.fillStyle = bottomRightColor
+        ctx.beginPath()
+        ctx.moveTo(cellX + cellWidth, cellY)
+        ctx.lineTo(cellX + cellWidth, cellY + cellHeight)
+        ctx.lineTo(cellX, cellY + cellHeight)
+        ctx.lineTo(cellX + bevelWidth, cellY + cellHeight - bevelWidth)
+        ctx.lineTo(cellX + cellWidth - bevelWidth, cellY + cellHeight - bevelWidth)
+        ctx.lineTo(cellX + cellWidth - bevelWidth, cellY + bevelWidth)
+        ctx.closePath()
+        ctx.fill()
       }
     }
   }
@@ -599,8 +705,11 @@ Board.prototype.drawText = function drawText (text) {
   var y = this.backgroundEl.height / 2
   ctx.fillStyle = 'white'
   ctx.textAlign = 'center'
-  ctx.font = '16pt Helvetica'
+  ctx.font = '16pt Play'
+  ctx.shadowBlur = 6
+  ctx.shadowColor = 'rgb(0, 255, 255)'
   wrapText(ctx, text, x, y, 200, 25)
+  ctx.shadowBlur = 0
 }
 
 function wrapText (context, text, x, y, maxWidth, lineHeight) {
