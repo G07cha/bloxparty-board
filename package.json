@@ -1,7 +1,7 @@
 {
   "name": "bloxparty-board",
   "description": "The game board for Blox Party uses",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "author": "Kevin Neff <kvnneff@gmail.com>",
   "bugs": {
     "url": "https://github.com/kvnneff/bloxparty-board/issues"
