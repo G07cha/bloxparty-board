@@ -1,12 +1,13 @@
 {
   "name": "bloxparty-board",
   "description": "The game board for Blox Party uses",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "author": "Kevin Neff <kvnneff@gmail.com>",
   "bugs": {
     "url": "https://github.com/bloxparty/bloxparty-board/issues"
   },
   "dependencies": {
+    "color": "^0.10.1",
     "component-clone": "^0.2.2",
     "component-emitter": "^1.2.0",
     "deep-diff": "^0.3.2",
